@@ -28,5 +28,7 @@ The current system is quite good, but it has some deficiances.
 
 int main(int argc, char** argv)
 {
+    Q_UNUSED(argc);
+    Q_UNUSED(argv);
     return 0;
 }
