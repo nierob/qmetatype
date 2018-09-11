@@ -1,4 +1,5 @@
 #include <QtCore>
+#include "metatype.h"
 
 /******************************************/
 /** This is QMetaType for Qt6 prototype. **/
@@ -30,5 +31,15 @@ int main(int argc, char** argv)
 {
     Q_UNUSED(argc);
     Q_UNUSED(argv);
+
+    auto intId = N::qRegisterType<int>();
+    qDebug() << "Succesfull registration of int:" << intId;
+    qDebug() << "sizeof(int):" << sizeof(int) << "while metatype says that the size is:" << N::Extensions::Allocation::sizeOf(intId);
+    qDebug() << "alignof(int):" << alignof(int) << "while metatype says that the align is:" << N::Extensions::Allocation::alignOf(intId);
+
+    auto qstringId = N::qRegisterType<QString>();
+    qDebug() << "Succesfull registration of QString:" << qstringId;
+    qDebug() << "sizeof(QString):" << sizeof(QString) << "while metatype says that the size is:" << N::Extensions::Allocation::sizeOf(qstringId);
+    qDebug() << "alignof(QString):" << alignof(QString) << "while metatype says that the align is:" << N::Extensions::Allocation::alignOf(qstringId);
     return 0;
 }
