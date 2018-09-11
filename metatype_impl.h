@@ -9,34 +9,36 @@ namespace N {
 
 namespace P {
 
+void* metaTypeCallImplTerminator(const char *name);
+
 template<class T>
 void* metaTypeCallImpl(size_t functionType, size_t argc, void **argv)
 {
+    Q_UNUSED(functionType);
+    Q_UNUSED(argc);
+    Q_UNUSED(argv);
+    return metaTypeCallImplTerminator(__PRETTY_FUNCTION__); // TODO Add parsing
+}
+
+template<class T, class Ext, class... Exts>
+void* metaTypeCallImpl(size_t functionType, size_t argc, void **argv)
+{
     // TODO this bit fidling should be in automatically sync with alignof(Extensions::Ex<void>::offset_)
-    constexpr auto extensionMask = ((std::numeric_limits<size_t>::max() >> 3) << 3);
+    constexpr auto extensionMask = (std::numeric_limits<size_t>::max() >> 3) << 3;
     auto extensionOffset = functionType & extensionMask;
     auto functionId = functionType ^ extensionOffset;
-    {
-        using Ext = Extensions::Allocation;
-        if (extensionOffset == Ext::offset())
-            return Ext::Call<T>(functionId, argc, argv);
-    }
-    {
-        using Ext = Extensions::DataStream;
-        if (extensionOffset == Ext::offset())
-            return Ext::Call<T>(functionId, argc, argv);
-    }
-    // TODO improve the message with the type names
-    qWarning() << "Metatype extension was not registerd for this type";
-    return nullptr;
+    if (extensionOffset == Ext::offset())
+        return Ext::template Call<T>(functionId, argc, argv);
+    return metaTypeCallImpl<T, Exts...>(functionType, argc, argv);
 }
 
 }  // namespace P
 
-template<class T, >
+template<class T>
 TypeId qRegisterType()
 {
-    static P::QtMetTypeCall typeInfo{P::metaTypeCallImpl<T>};
+    static P::QtMetTypeCall typeInfo{P::metaTypeCallImpl<T, Extensions::Allocation, Extensions::DataStream>};
+
     return typeInfo;
 }
 
