@@ -35,11 +35,22 @@ void* metaTypeCallImpl(size_t functionType, size_t argc, void **argv)
 }  // namespace P
 
 template<class T>
+TypeId qRegisterTypeImpl(P::QtMetTypeCall info)
+{
+    static P::QtMetTypeCall typeInfo{info};
+    return typeInfo;
+}
+
+template<class T, class Extension, class... Extensions>
 TypeId qRegisterType()
 {
-    static P::QtMetTypeCall typeInfo{P::metaTypeCallImpl<T, Extensions::Allocation, Extensions::DataStream>};
+    return qRegisterTypeImpl<T>(P::metaTypeCallImpl<T, Extension, Extensions...>);
+}
 
-    return typeInfo;
+template<class T>
+TypeId qRegisterType()
+{
+    return qRegisterType<T, Extensions::Allocation, Extensions::DataStream>();
 }
 
 }  // namespace N
