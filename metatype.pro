@@ -20,4 +20,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 # Input
 SOURCES += main.cpp metatype.cpp
-HEADERS += extensions.h metatype.h metatype_impl.h metatype_fwd.h
+HEADERS += metatype.h metatype_impl.h metatype_fwd.h
+HEADERS += extensions/extensions.h \
+           extensions/allocation.h \
+           extensions/streams.h

@@ -3,7 +3,8 @@
 #include <limits>
 
 #include "metatype_fwd.h"
-#include "extensions.h"
+#include "extensions/allocation.h"
+#include "extensions/streams.h"
 
 namespace N {
 
