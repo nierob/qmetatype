@@ -24,3 +24,5 @@ HEADERS += metatype.h metatype_impl.h metatype_fwd.h
 HEADERS += extensions/extensions.h \
            extensions/allocation.h \
            extensions/streams.h
+
+CONFIG += sanitizer sanitize_address sanitize_undefined
