@@ -24,9 +24,9 @@ bool metaTypeCallImpl(size_t functionType, size_t argc, void **argv)
 {
     // TODO this bit fidling should be in automatically sync with alignof(Extensions::Ex<void>::offset_)
     constexpr auto extensionMask = (std::numeric_limits<size_t>::max() >> 3) << 3;
-    auto extensionOffset = functionType & extensionMask;
-    auto functionId = functionType ^ extensionOffset;
-    if (extensionOffset == Ext::offset()) {
+    auto extensionTag = functionType & extensionMask;
+    auto functionId = functionType ^ extensionTag;
+    if (Ext::isAccepted(extensionTag)) {
         Ext::template Call<T>(functionId, argc, argv);
         return true;
     }

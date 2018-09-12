@@ -9,13 +9,18 @@ namespace Extensions
 {
 
 template<class T>
-struct Ex
+class Ex
 {
-    typedef Ex<T> Base;
     // Used only for unique address range, allows 8 operations
     // TODO double check if there is no better option then alignment
     Q_DECL_ALIGN(8) static char offset_;
     static inline size_t offset() { return (size_t)&offset_; }
+public:
+    typedef Ex<T> Base;
+    static inline bool isAccepted(size_t tag)
+    {
+         return tag == (size_t)&offset_;
+    }
     static void Call(TypeId id, quint8 operation, size_t argc, void **argv)
     {
         auto metaTypeCall = static_cast<P::QtMetTypeCall>(id);
