@@ -39,6 +39,9 @@ template<class T>
 TypeId qRegisterTypeImpl(P::QtMetTypeCall info)
 {
     static P::QtMetTypeCall typeInfo{info};
+    if (typeInfo != info) {
+        qDebug() << "UNIMPLEMENTED would register a new one extension for this type"; // TODO
+    }
     return typeInfo;
 }
 

@@ -36,10 +36,26 @@ int main(int argc, char** argv)
     qDebug() << "Succesfull registration of int:" << intId;
     qDebug() << "sizeof(int):" << sizeof(int) << "while metatype says that the size is:" << N::Extensions::Allocation::sizeOf(intId);
     qDebug() << "alignof(int):" << alignof(int) << "while metatype says that the align is:" << N::Extensions::Allocation::alignOf(intId);
+    int intCopy = 6;
+    int *i = static_cast<int*>(N::Extensions::Allocation::create(intId, &intCopy));
+    qDebug() << "create(int):" << *i;
+    qDebug() << "try to call qdebug stream (int):";
+    N::Extensions::QDebugStream::qDebugStream(intId, qDebug() << "   Testing qdebug stream output, should result in error", i);
+    qDebug() << "let's try to re-register the type with new a extension";
+    N::qRegisterType<int, N::Extensions::QDebugStream>();
+    qDebug() << "try to call qdebug stream (int):";
+    N::Extensions::QDebugStream::qDebugStream(intId, qDebug() << "   Testing qdebug stream output after registration of QDebug extension:", i);
+    qDebug() << "destroy(int)...";
+    N::Extensions::Allocation::destroy(intId, i);
 
     auto qstringId = N::qRegisterType<QString>();
     qDebug() << "Succesfull registration of QString:" << qstringId;
     qDebug() << "sizeof(QString):" << sizeof(QString) << "while metatype says that the size is:" << N::Extensions::Allocation::sizeOf(qstringId);
     qDebug() << "alignof(QString):" << alignof(QString) << "while metatype says that the align is:" << N::Extensions::Allocation::alignOf(qstringId);
+    QString stringCopy = QLatin1String("String");
+    QString *string = static_cast<QString*>(N::Extensions::Allocation::create(qstringId, &stringCopy));
+    qDebug() << "create(QString):" << *string;
+    qDebug() << "destroy(QString)...";
+    N::Extensions::Allocation::destroy(qstringId, string);
     return 0;
 }
