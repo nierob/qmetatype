@@ -32,6 +32,7 @@ int main(int argc, char** argv)
     Q_UNUSED(argc);
     Q_UNUSED(argv);
 
+    qDebug() << "----------------Int--------------------------";
     auto intId = N::qRegisterType<int>();
     qDebug() << "Succesfull registration of int:" << intId;
     qDebug() << "sizeof(int):" << sizeof(int) << "while metatype says that the size is:" << N::Extensions::Allocation::sizeOf(intId);
@@ -48,6 +49,7 @@ int main(int argc, char** argv)
     qDebug() << "destroy(int)...";
     N::Extensions::Allocation::destroy(intId, i);
 
+    qDebug() << "----------------QString--------------------------";
     auto qstringId = N::qRegisterType<QString>();
     qDebug() << "Succesfull registration of QString:" << qstringId;
     qDebug() << "sizeof(QString):" << sizeof(QString) << "while metatype says that the size is:" << N::Extensions::Allocation::sizeOf(qstringId);
