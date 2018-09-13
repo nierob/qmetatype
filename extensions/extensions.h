@@ -25,7 +25,7 @@ public:
     {
         auto metaTypeCall = static_cast<P::QtMetTypeCall>(id);
         if (!metaTypeCall(operation + offset(), argc, argv))
-            qWarning() << "Requested metatype extension is not registed for this type"; // TODO we can do better msg.
+            qWarning() << "WARN Requested metatype extension is not registed for this type"; // TODO we can do better msg.
     }
 };
 

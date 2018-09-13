@@ -40,12 +40,12 @@ int main(int argc, char** argv)
     int intCopy = 6;
     int *i = static_cast<int*>(N::Extensions::Allocation::create(intId, &intCopy));
     qDebug() << "create(int):" << *i;
-    qDebug() << "try to call qdebug stream (int):";
+    qDebug() << "try to call qdebug stream (int), should result in error";
     N::Extensions::QDebugStream::qDebugStream(intId, qDebug() << "   Testing qdebug stream output, should result in error", i);
     qDebug() << "let's try to re-register the type with new a extension";
     N::qRegisterType<int, N::Extensions::QDebugStream>();
     qDebug() << "try to call qdebug stream (int):";
-    N::Extensions::QDebugStream::qDebugStream(intId, qDebug() << "   Testing qdebug stream output after registration of QDebug extension:", i);
+    N::Extensions::QDebugStream::qDebugStream(intId, qDebug() << "   Testing qdebug stream output after registration of QDebug extension value:", i);
     qDebug() << "destroy(int)...";
     N::Extensions::Allocation::destroy(intId, i);
 
