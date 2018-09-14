@@ -61,7 +61,6 @@ bool areExtensionsAccepting(size_t tag) {
     return false;
 }
 
-
 }  // namespace P
 
 template<class T>
@@ -74,6 +73,7 @@ TypeId qRegisterTypeImpl(P::QtMetTypeCall info)
 template<class T, class Extension, class... Extensions>
 TypeId qRegisterType()
 {
+    N::Extensions::P::PreRegisterAction<T, Extension, Extensions...>();
     auto proposedTypeInfo = P::metaTypeCallImpl<T, Extension, Extensions...>;
     auto typeInfo = qRegisterTypeImpl<T>(proposedTypeInfo);
     if (typeInfo != proposedTypeInfo) {
