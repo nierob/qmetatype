@@ -25,4 +25,5 @@ HEADERS += extensions/extensions.h \
            extensions/allocation.h \
            extensions/streams.h
 
+QMAKE_CXXFLAGS += -std=c++17
 CONFIG += sanitizer sanitize_address sanitize_undefined
