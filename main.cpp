@@ -51,7 +51,7 @@ int main(int argc, char** argv)
 
     qDebug() << "----------------QString--------------------------";
     auto qstringId = N::qRegisterType<QString>();
-    qDebug() << "Succesfull registration of QString:" << qstringId;
+    qDebug() << "Succesfull registration of QString:" << qstringId << "as named type" << N::Extensions::Name::name(qstringId);
     qDebug() << "sizeof(QString):" << sizeof(QString) << "while metatype says that the size is:" << N::Extensions::Allocation::sizeOf(qstringId);
     qDebug() << "alignof(QString):" << alignof(QString) << "while metatype says that the align is:" << N::Extensions::Allocation::alignOf(qstringId);
     QString stringCopy = QLatin1String("String");
@@ -59,5 +59,13 @@ int main(int argc, char** argv)
     qDebug() << "create(QString):" << *string;
     qDebug() << "destroy(QString)...";
     N::Extensions::Allocation::destroy(qstringId, string);
+
+    qDebug() << "----------------Unsigned int--------------------------";
+    auto preRegistrationIntId = N::Extensions::Name::fromName(QStringLiteral("unsigned"));
+    qDebug() << "Succesfull pre-registration of unsigned:" << preRegistrationIntId;
+    auto uintId = N::qRegisterType<unsigned>();
+    qDebug() << "Pre-registration and registartion returned the same value:" << (uintId == preRegistrationIntId);
+    qDebug() << "Unsigned int by default is known as:" << N::Extensions::Name::name(uintId);
+
     return 0;
 }

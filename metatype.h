@@ -5,3 +5,4 @@
 #include "extensions/extensions.h"
 #include "extensions/allocation.h"
 #include "extensions/streams.h"
+#include "extensions/name.h"

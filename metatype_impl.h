@@ -5,6 +5,7 @@
 #include "metatype_fwd.h"
 #include "extensions/allocation.h"
 #include "extensions/streams.h"
+#include "extensions/name.h"
 
 namespace N {
 
@@ -93,7 +94,7 @@ TypeId qRegisterType()
     // is probably not in :-)
     // Every usage of metatype can call qRegisterType with own minimal set of
     // extensions.
-    return qRegisterType<T, Extensions::Allocation, Extensions::DataStream>();
+    return qRegisterType<T, Extensions::Allocation, Extensions::DataStream, Extensions::Name>();
 }
 
 }  // namespace N

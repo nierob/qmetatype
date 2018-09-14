@@ -19,11 +19,15 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 # Input
-SOURCES += main.cpp metatype.cpp
+SOURCES += main.cpp metatype.cpp extensions/extensions.cpp
+
 HEADERS += metatype.h metatype_impl.h metatype_fwd.h
 HEADERS += extensions/extensions.h \
            extensions/allocation.h \
-           extensions/streams.h
+           extensions/streams.h \
+           extensions/name.h \
 
 QMAKE_CXXFLAGS += -std=c++17
 CONFIG += sanitizer sanitize_address sanitize_undefined
+LIBS += -ldl
+QMAKE_LFLAGS += -rdynamic
