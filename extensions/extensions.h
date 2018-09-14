@@ -29,7 +29,7 @@ public:
     }
 };
 
-template<class T> char Ex<T>::offset_;
+template<class T> Q_DECL_ALIGN(8) char Ex<T>::offset_;
 
 } // namespace Extensions
 
