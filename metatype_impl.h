@@ -89,6 +89,10 @@ TypeId qRegisterType()
 template<class T>
 TypeId qRegisterType()
 {
+    // Register default stuff, Qt should define minimal useful set, DataStream
+    // is probably not in :-)
+    // Every usage of metatype can call qRegisterType with own minimal set of
+    // extensions.
     return qRegisterType<T, Extensions::Allocation, Extensions::DataStream>();
 }
 
