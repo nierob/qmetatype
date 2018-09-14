@@ -26,7 +26,6 @@ bool metaTypeCallImpl(size_t functionType, size_t argc, void **argv)
     // TODO this bit fidling should be in automatically sync with alignof(Extensions::Ex<void>::offset_)
     constexpr auto extensionMask = (std::numeric_limits<size_t>::max() >> 3) << 3;
     auto extensionTag = functionType & extensionMask;
-    auto functionId = functionType ^ extensionTag;
 
     static QAtomicPointer<ExtensionNode> first{};
     if (ExtensionNode::CallIfAcceptedInChain(first.load(), extensionTag, functionType, argc, argv))
