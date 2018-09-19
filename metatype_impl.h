@@ -77,6 +77,7 @@ TypeId qRegisterType()
     N::Extensions::P::PreRegisterAction<T, Extension, Extensions...>();
     auto proposedTypeInfo = P::metaTypeCallImpl<T, Extension, Extensions...>;
     auto typeInfo = qRegisterTypeImpl<T>(proposedTypeInfo);
+    N::Extensions::P::PostRegisterAction<T, Extension, Extensions...>(typeInfo);
     if (typeInfo != proposedTypeInfo) {
         // This check is a bit too broad as order of the extensions should not matter
         // and this allows to re-register some Extensions multiple times.

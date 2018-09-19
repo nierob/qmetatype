@@ -18,6 +18,14 @@ void PreRegisterAction()
         PreRegisterAction<T, Extensions...>();
 }
 
+template<class T, class Extension, class... Extensions>
+void PostRegisterAction(TypeId id)
+{
+    Extension::template PostRegisterAction<T>(id);
+    if constexpr (sizeof...(Extensions))
+        PostRegisterAction<T, Extensions...>(id);
+}
+
 } // namespace P
 
 template<class Extension>
@@ -39,6 +47,7 @@ public:
             qWarning() << "WARN Requested metatype extension is not registed for this type"; // TODO we can do better msg.
     }
     template<class T> constexpr static void PreRegisterAction() {}
+    template<class T> constexpr static void PostRegisterAction(TypeId id) { Q_UNUSED(id); }
 };
 
 template<class Extension> Q_DECL_ALIGN(8) char Ex<Extension>::offset_;
