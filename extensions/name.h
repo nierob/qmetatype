@@ -5,7 +5,7 @@
 namespace N::Extensions
 {
 
-struct Name: public Ex<Name>
+struct Name_dlsym: public Ex<Name_dlsym>
 {
     static QRegularExpression nameFromTemplate;
     enum Operations {GetName, RegisterAlias};

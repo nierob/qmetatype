@@ -94,7 +94,7 @@ TypeId qRegisterType()
     // is probably not in :-)
     // Every usage of metatype can call qRegisterType with own minimal set of
     // extensions.
-    return qRegisterType<T, Extensions::Allocation, Extensions::DataStream, Extensions::Name>();
+    return qRegisterType<T, Extensions::Allocation, Extensions::DataStream, Extensions::Name_dlsym>();
 }
 
 }  // namespace N
