@@ -5,9 +5,18 @@
 namespace N::Extensions
 {
 
+namespace P
+{
+template<class T> QString typeNameFromType()
+{
+    // TODO make it compile time and return const char* probably.
+    static QRegularExpression nameFromTemplate{QLatin1String("with T = (.+)[;\\]]+.*")};
+    return nameFromTemplate.match(Q_FUNC_INFO).captured(1);
+}
+}
+
 struct Name_dlsym: public Ex<Name_dlsym>
 {
-    static QRegularExpression nameFromTemplate;
     enum Operations {GetName, RegisterAlias};
 
     template<class T>
@@ -19,7 +28,7 @@ struct Name_dlsym: public Ex<Name_dlsym>
                 Q_ASSERT(argc == 1);
                 void *&result = argv[0];
                 // TODO make it compile time and return const char* probably.
-                *static_cast<QString*>(result) = nameFromTemplate.match(Q_FUNC_INFO).captured(1);
+                *static_cast<QString*>(result) = P::typeNameFromType<T>();
                 break;
             }
         }
