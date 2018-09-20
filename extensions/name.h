@@ -76,4 +76,54 @@ struct Name_dlsym: public Ex<Name_dlsym>
     }
 };
 
+
+struct Name_hash: public Name_dlsym
+{
+    static TypeId fromName(const QString &name)
+    {
+        lock.lockForRead();
+        auto id = nameToId[name];
+        lock.unlock();
+        return id;
+    }
+
+    template<class T>
+    static void PreRegisterAction()
+    {
+        if (firstPreCall<T>())
+            lock.lockForWrite();
+    }
+
+    template<class T>
+    static void PostRegisterAction(TypeId id)
+    {
+        if (firstPostCall<T>()) {
+            nameToId[P::typeNameFromType<T>()] = id;
+            lock.unlock();
+        }
+    }
+
+private:
+    static QReadWriteLock lock;
+    static QHash<QString, TypeId> nameToId;
+
+    template<class T>
+    static bool firstPreCall()
+    {
+        bool result = false;
+        static bool marker = ((result = true), false);
+        Q_UNUSED(marker);
+        return result;
+    }
+    template<class T>
+    static bool firstPostCall()
+    {
+        bool result = false;
+        static bool marker = ((result = true), false);
+        Q_UNUSED(marker);
+        return result;
+    }
+};
+
+
 }  // N::Extensions

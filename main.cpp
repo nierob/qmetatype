@@ -67,5 +67,12 @@ int main(int argc, char** argv)
     qDebug() << "Pre-registration and registartion returned the same value:" << (uintId == preRegistrationIntId);
     qDebug() << "Unsigned int by default is known as:" << N::Extensions::Name_dlsym::name(uintId);
 
+
+    qDebug() << "----------------Char--------------------------";
+    auto charId = N::qRegisterType<char, N::Extensions::Name_hash>();
+    qDebug() << "Succesfull registration of char:" << charId;
+    qDebug() << "Lookup type id by name:" << N::Extensions::Name_hash::fromName("char");
+    qDebug() << "Lookup type id by name returned registered id:" << (N::Extensions::Name_hash::fromName("char") == charId);
+    qDebug() << "Char by default is known as:" << N::Extensions::Name_hash::name(charId);
     return 0;
 }
