@@ -6,20 +6,6 @@
 namespace N::Extensions
 {
 
-namespace P
-{
-template<class QtTypeToIntrospect> constexpr std::string_view typeNameFromType()
-{
-    constexpr size_t offset = strlen("constexpr std::string_view N::Extensions::P::typeNameFromType() [with QtTypeToIntrospect = ");
-    constexpr size_t tail = strlen("; std::string_view = std::basic_string_view<char>]");
-    // TODO That could be const expression but apparently it is not
-    // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=66639 sugests that it works on clang and msvc.
-    // As for gcc this code is storing the full signature in the code because, we really would need to shorten the name.
-    /*constexpr*/ size_t len = strlen(__PRETTY_FUNCTION__);
-    return {Q_FUNC_INFO + offset, len - offset - tail};
-}
-}
-
 struct Name_dlsym: public Ex<Name_dlsym>
 {
     enum Operations {GetName, RegisterAlias};
