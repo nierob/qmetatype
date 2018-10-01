@@ -48,7 +48,7 @@ struct Name_dlsym: public Ex<Name_dlsym>
         return name;
     }
 
-    static TypeId fromName(const QString &name)
+    static TypeId fromName(const QString &name) Q_REQUIRED_RESULT
     {
         // TODO this algorithm will work only with -rdynamic and if binaries
         // are not totally stripped. In addition it is platform specific. We may
@@ -85,7 +85,7 @@ struct Name_dlsym: public Ex<Name_dlsym>
 
 struct Name_hash: public Name_dlsym
 {
-    static TypeId fromName(const QString &name)
+    static TypeId fromName(const QString &name) Q_REQUIRED_RESULT
     {
         lock.lockForRead();
         auto id = nameToId[name];
