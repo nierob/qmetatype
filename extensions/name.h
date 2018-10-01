@@ -1,4 +1,5 @@
 #pragma once
+#include <string_view>
 #include <dlfcn.h>
 #include "extensions.h"
 
@@ -7,11 +8,15 @@ namespace N::Extensions
 
 namespace P
 {
-template<class T> QString typeNameFromType()
+template<class QtTypeToIntrospect> constexpr std::string_view typeNameFromType()
 {
-    // TODO make it compile time and return const char* probably.
-    static QRegularExpression nameFromTemplate{QLatin1String("with T = (.+)[;\\]]+.*")};
-    return nameFromTemplate.match(Q_FUNC_INFO).captured(1);
+    constexpr size_t offset = strlen("constexpr std::string_view N::Extensions::P::typeNameFromType() [with QtTypeToIntrospect = ");
+    constexpr size_t tail = strlen("; std::string_view = std::basic_string_view<char>]");
+    // TODO That could be const expression but apparently it is not
+    // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=66639 sugests that it works on clang and msvc.
+    // As for gcc this code is storing the full signature in the code because, we really would need to shorten the name.
+    /*constexpr*/ size_t len = strlen(__PRETTY_FUNCTION__);
+    return {Q_FUNC_INFO + offset, len - offset - tail};
 }
 }
 
@@ -28,7 +33,8 @@ struct Name_dlsym: public Ex<Name_dlsym>
                 Q_ASSERT(argc == 1);
                 void *&result = argv[0];
                 // TODO make it compile time and return const char* probably.
-                *static_cast<QString*>(result) = P::typeNameFromType<T>();
+                constexpr std::string_view str = P::typeNameFromType<T>();
+                *static_cast<QString*>(result) = QString::fromLocal8Bit(str.data(), str.length());
                 break;
             }
         }
@@ -98,7 +104,8 @@ struct Name_hash: public Name_dlsym
     static void PostRegisterAction(TypeId id)
     {
         if (firstPostCall<T>()) {
-            nameToId[P::typeNameFromType<T>()] = id;
+            constexpr std::string_view str = P::typeNameFromType<T>();
+            nameToId[QString::fromLocal8Bit(str.data(), str.length())] = id;
             lock.unlock();
         }
     }
