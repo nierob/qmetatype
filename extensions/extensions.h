@@ -41,15 +41,18 @@ void PostRegisterAction(TypeId id)
 template<class Extension>
 class Ex
 {
-    // Used only for unique address range, allows 8 operations
-    // TODO double check if there is no better option then alignment
-    Q_DECL_ALIGN(8) static char offset_;
-    static inline size_t offset() { return (size_t)&offset_; }
+    static inline size_t offset()
+    {
+        // Used only for unique address range, allows 8 operations
+        // TODO double check if there is no better option then alignment
+        Q_DECL_ALIGN(8) static char offset_;
+        return (size_t)&offset_;
+    }
 public:
     typedef Ex<Extension> Base;
     static inline bool isAccepted(size_t tag)
     {
-         return tag == (size_t)&offset_;
+         return tag == offset();
     }
     static void Call(TypeId metaTypeCall, quint8 operation, size_t argc, void **argv)
     {
@@ -65,8 +68,6 @@ public:
     template<class T> constexpr static void PreRegisterAction() {}
     template<class T> constexpr static void PostRegisterAction(TypeId id) { Q_UNUSED(id); }
 };
-
-template<class Extension> Q_DECL_ALIGN(8) char Ex<Extension>::offset_;
 
 } // namespace Extensions
 
