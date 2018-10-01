@@ -21,22 +21,12 @@ struct ExtensionNode
     static void AppendToTheChain(QAtomicPointer<ExtensionNode> &first, ExtensionNode *newNode);
 };
 
+bool metaTypeCallImpl(QAtomicPointer<ExtensionNode> &first, size_t functionType, size_t argc, void **argv);
 template<class T>
-bool metaTypeCallImpl(size_t functionType, size_t argc, void **argv)
+inline bool metaTypeCallImpl(size_t functionType, size_t argc, void **argv)
 {
-    // TODO this bit fidling should be in automatically sync with alignof(Extensions::Ex<void>::offset_)
-    constexpr auto extensionMask = (std::numeric_limits<size_t>::max() >> 3) << 3;
-    auto extensionTag = functionType & extensionMask;
-
     static QAtomicPointer<ExtensionNode> first{};
-    if (ExtensionNode::CallIfAcceptedInChain(first.load(), extensionTag, functionType, argc, argv))
-        return true;
-    if (functionType == RegisterExtension) {
-        Q_ASSERT(argc == 1);
-        ExtensionNode *newNode = static_cast<ExtensionNode*>(argv[0]);
-        ExtensionNode::AppendToTheChain(first, newNode);
-    }
-    return false;
+    return metaTypeCallImpl(first, functionType, argc, argv);
 }
 
 template<class T, class Ext, class... Exts>

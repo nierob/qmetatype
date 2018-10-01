@@ -24,3 +24,19 @@ void N::P::ExtensionNode::AppendToTheChain(QAtomicPointer<ExtensionNode> &first,
     // self-referencing node (inifinit loop). Just in case let's try to [un]break it.
     newNode->next.testAndSetRelease(newNode, nullptr);
 }
+
+bool N::P::metaTypeCallImpl(QAtomicPointer<ExtensionNode> &first, size_t functionType, size_t argc, void **argv)
+{
+    // TODO this bit fidling should be in automatically sync with alignof(Extensions::Ex<void>::offset_)
+    constexpr auto extensionMask = (std::numeric_limits<size_t>::max() >> 3) << 3;
+    auto extensionTag = functionType & extensionMask;
+
+    if (ExtensionNode::CallIfAcceptedInChain(first.load(), extensionTag, functionType, argc, argv))
+        return true;
+    if (functionType == RegisterExtension) {
+        Q_ASSERT(argc == 1);
+        ExtensionNode *newNode = static_cast<ExtensionNode*>(argv[0]);
+        ExtensionNode::AppendToTheChain(first, newNode);
+    }
+    return false;
+}
