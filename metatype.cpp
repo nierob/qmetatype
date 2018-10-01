@@ -37,6 +37,7 @@ bool N::P::metaTypeCallImpl(QAtomicPointer<ExtensionNode> &first, size_t functio
         Q_ASSERT(argc == 1);
         ExtensionNode *newNode = static_cast<ExtensionNode*>(argv[0]);
         ExtensionNode::AppendToTheChain(first, newNode);
+        return true;
     }
     return false;
 }
