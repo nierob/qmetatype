@@ -64,19 +64,19 @@ struct Allocation : public Ex<Allocation>
         }
     }
 
-    static size_t sizeOf(TypeId id) Q_REQUIRED_RESULT
+    static size_t sizeOf(TypeId id)
     {
         void *argv[] = {nullptr};
         Base::Call(id, SizeOf, 1, argv);
         return (size_t)argv[0];
     }
-    static size_t alignOf(TypeId id) Q_REQUIRED_RESULT
+    static size_t alignOf(TypeId id)
     {
         void *argv[] = {nullptr};
         Base::Call(id, AlignOf, 1, argv);
         return (size_t)argv[0];
     }
-    static void* create(TypeId id, const void *copy = nullptr) Q_REQUIRED_RESULT
+    static void* create(TypeId id, const void *copy = nullptr)
     {
         // TODO consider std::unique_ptr with destroy as deleter as a return type
         void *argv[] = {nullptr, const_cast<void*>(copy)};
