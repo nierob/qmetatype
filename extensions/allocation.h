@@ -78,6 +78,7 @@ struct Allocation : public Ex<Allocation>
     }
     static void* create(TypeId id, const void *copy = nullptr) Q_REQUIRED_RESULT
     {
+        // TODO consider std::unique_ptr with destroy as deleter as a return type
         void *argv[] = {nullptr, const_cast<void*>(copy)};
         Base::Call(id, Create, copy ? 2 : 1, argv);
         return argv[0];
