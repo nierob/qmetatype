@@ -38,7 +38,7 @@ struct Allocation : public Ex<Allocation>
                 if (argc == 2) {
                     result = new (storage) T{};
                 } else {
-                    auto copy = static_cast<const T*>(argv[0]);
+                    auto copy = static_cast<const T*>(argv[2]);
                     result = new (storage) T{*copy};
                 }
                 break;
