@@ -7,8 +7,8 @@ int main(int argc, char** argv)
     Q_UNUSED(argv);
 
     qDebug() << "----------------Int--------------------------";
-    auto intId = N::qRegisterType<int>();
-    qDebug() << "Succesfull registration of int:" << intId;
+    auto intId = N::qTypeId<int>();
+    qDebug() << "Succesfull geting type id of int:" << intId;
     qDebug() << "sizeof(int):" << sizeof(int) << "while metatype says that the size is:" << N::Extensions::Allocation::sizeOf(intId);
     qDebug() << "alignof(int):" << alignof(int) << "while metatype says that the align is:" << N::Extensions::Allocation::alignOf(intId);
     int intCopy = 6;
@@ -17,15 +17,15 @@ int main(int argc, char** argv)
     qDebug() << "try to call qdebug stream (int), should result in error";
     N::Extensions::QDebugStream::qDebugStream(intId, qDebug() << "   Testing qdebug stream output, should result in error", i);
     qDebug() << "let's try to re-register the type with new a extension";
-    N::qRegisterType<int, N::Extensions::QDebugStream>();
+    N::qTypeId<int, N::Extensions::QDebugStream>();
     qDebug() << "try to call qdebug stream (int):";
     N::Extensions::QDebugStream::qDebugStream(intId, qDebug() << "   Testing qdebug stream output after registration of QDebug extension value:", i);
     qDebug() << "destroy(int)...";
     N::Extensions::Allocation::destroy(intId, i);
 
     qDebug() << "----------------QString--------------------------";
-    auto qstringId = N::qRegisterType<QString>();
-    qDebug() << "Succesfull registration of QString:" << qstringId << "as named type" << N::Extensions::Name_dlsym::name(qstringId);
+    auto qstringId = N::qTypeId<QString>();
+    qDebug() << "Succesfull geting type id of QString:" << qstringId << "as named type" << N::Extensions::Name_dlsym::name(qstringId);
     qDebug() << "sizeof(QString):" << sizeof(QString) << "while metatype says that the size is:" << N::Extensions::Allocation::sizeOf(qstringId);
     qDebug() << "alignof(QString):" << alignof(QString) << "while metatype says that the align is:" << N::Extensions::Allocation::alignOf(qstringId);
     QString stringCopy = QLatin1String("String");
@@ -36,17 +36,17 @@ int main(int argc, char** argv)
 
     qDebug() << "----------------Unsigned int--------------------------";
     auto preRegistrationIntId = N::Extensions::Name_dlsym::fromName(QStringLiteral("unsigned"));
-    qDebug() << "Succesfull pre-registration of unsigned:" << preRegistrationIntId;
-    auto uintId = N::qRegisterType<unsigned, N::Extensions::Name_dlsym>();
-    qDebug() << "Pre-registration and registartion returned the same value:" << (uintId == preRegistrationIntId);
+    qDebug() << "Succesfull geting type id of unsigned before using the qTypeId:" << preRegistrationIntId;
+    auto uintId = N::qTypeId<unsigned, N::Extensions::Name_dlsym>();
+    qDebug() << "All ids are in sync:" << (uintId == preRegistrationIntId);
     qDebug() << "Unsigned int by default is known as:" << N::Extensions::Name_dlsym::name(uintId);
 
 
     qDebug() << "----------------Char--------------------------";
-    auto charId = N::qRegisterType<char, N::Extensions::Name_hash>();
-    qDebug() << "Succesfull registration of char:" << charId;
+    auto charId = N::qTypeId<char, N::Extensions::Name_hash>();
+    qDebug() << "Succesfull geting type id of char:" << charId;
     qDebug() << "Lookup type id by name:" << N::Extensions::Name_hash::fromName("char");
-    qDebug() << "Lookup type id by name returned registered id:" << (N::Extensions::Name_hash::fromName("char") == charId);
+    qDebug() << "Lookup type id by name returned correct id:" << (N::Extensions::Name_hash::fromName("char") == charId);
     qDebug() << "Char by default is known as:" << N::Extensions::Name_hash::name(charId);
     return 0;
 }

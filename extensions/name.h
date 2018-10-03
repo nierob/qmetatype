@@ -43,13 +43,13 @@ struct Name_dlsym: public Ex<Name_dlsym>
         // scanning .data section would probably discover it, but we would need
         // to ensure that all internal statics are actually initialized (TODO how?).
 
-        // We prefer the first value but any of _ZN1N13qRegisterType would do,
+        // We prefer the first value but any of _ZN1N13qTypeId would do,
         // so maybe we should just scan all symbols (TODO how exactly?)
         // TODO add more templates or figure out a better way of finding the call.
         static QVector<QString> symbolsTemplates = {
-            QStringLiteral("_ZN1N13qRegisterTypeI7%1EEPFbmmPPvEv"),
-            QStringLiteral("_ZN1N13qRegisterTypeI%1EEPFbmmPPvEv"),
-            QStringLiteral("_ZN1N13qRegisterTypeI7%1NS_10Extensions10AllocationEJNS2_10DataStreamEEEEPFbmmPPvEv")
+            QStringLiteral("_ZN1N13qTypeIdI7%1EEPFbmmPPvEv"),
+            QStringLiteral("_ZN1N13qTypeIdI%1EEPFbmmPPvEv"),
+            QStringLiteral("_ZN1N13qTypeIdI7%1NS_10Extensions10AllocationEJNS2_10DataStreamEEEEPFbmmPPvEv")
         };
         for (auto symbolTemplate: symbolsTemplates) {
             TypeId (*registrationFunctionPointer)();

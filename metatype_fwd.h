@@ -14,7 +14,7 @@ template<class T> bool metaTypeCallImpl(size_t functionType, size_t argc, void *
 
 using TypeId = P::QtMetTypeCall;
 
-template<class T> TypeId qRegisterType();
+template<class T> TypeId qTypeId();
 
 }  // namespace N
 

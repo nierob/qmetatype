@@ -55,18 +55,18 @@ bool areExtensionsAccepting(size_t tag) {
 }  // namespace P
 
 template<class T>
-TypeId qRegisterTypeImpl(P::QtMetTypeCall info)
+TypeId qTypeIdImpl(P::QtMetTypeCall info)
 {
     static P::QtMetTypeCall typeInfo{info};
     return typeInfo;
 }
 
 template<class T, class Extension, class... Extensions>
-TypeId qRegisterType()
+TypeId qTypeId()
 {
     N::Extensions::P::PreRegisterAction<T, Extension, Extensions...>();
     auto proposedTypeInfo = P::metaTypeCallImpl<T, Extension, Extensions...>;
-    auto typeInfo = qRegisterTypeImpl<T>(proposedTypeInfo);
+    auto typeInfo = qTypeIdImpl<T>(proposedTypeInfo);
     N::Extensions::P::PostRegisterAction<T, Extension, Extensions...>(typeInfo);
     if (typeInfo != proposedTypeInfo) {
         // This check is a bit too broad as order of the extensions should not matter
@@ -79,13 +79,13 @@ TypeId qRegisterType()
 }
 
 template<class T>
-TypeId qRegisterType()
+TypeId qTypeId()
 {
     // Register default stuff, Qt should define minimal useful set, DataStream
     // is probably not in :-)
-    // Every usage of metatype can call qRegisterType with own minimal set of
+    // Every usage of metatype can call qTypeId with own minimal set of
     // extensions.
-    return qRegisterType<T, Extensions::Allocation, Extensions::DataStream, Extensions::Name_dlsym>();
+    return qTypeId<T, Extensions::Allocation, Extensions::DataStream, Extensions::Name_dlsym>();
 }
 
 }  // namespace N
