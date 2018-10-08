@@ -15,22 +15,22 @@ constexpr size_t RegisterExtension = 0;
 struct ExtensionNode
 {
     QAtomicPointer<ExtensionNode> next;
-    bool (*Call)(size_t functionType, size_t argc, void **argv);
+    bool (*Call)(size_t functionType, size_t argc, void **argv, void *data);
     bool (*isAccepted)(size_t tag);
-    static bool CallIfAcceptedInChain(ExtensionNode *node, size_t extensionTag, size_t functionType, size_t argc, void **argv);
+    static bool CallIfAcceptedInChain(ExtensionNode *node, size_t extensionTag, size_t functionType, size_t argc, void **argv, void *data);
     static void AppendToTheChain(QAtomicPointer<ExtensionNode> &first, ExtensionNode *newNode);
 };
 
-bool metaTypeCallImpl(QAtomicPointer<ExtensionNode> &first, size_t functionType, size_t argc, void **argv);
+bool metaTypeCallImpl(QAtomicPointer<ExtensionNode> &first, size_t functionType, size_t argc, void **argv, void *data);
 template<class T>
-inline bool metaTypeCallImpl(size_t functionType, size_t argc, void **argv)
+inline bool metaTypeCallImpl(size_t functionType, size_t argc, void **argv, void *data)
 {
     static QAtomicPointer<ExtensionNode> first{};
-    return metaTypeCallImpl(first, functionType, argc, argv);
+    return metaTypeCallImpl(first, functionType, argc, argv, data);
 }
 
 template<class T, class Ext, class... Exts>
-bool metaTypeCallImpl(size_t functionType, size_t argc, void **argv)
+bool metaTypeCallImpl(size_t functionType, size_t argc, void **argv, void *data = nullptr)
 {
     // TODO this bit fidling should be in automatically sync with alignof(Extensions::Ex<void>::offset_)
     constexpr auto extensionMask = (std::numeric_limits<size_t>::max() >> 3) << 3;
@@ -40,7 +40,7 @@ bool metaTypeCallImpl(size_t functionType, size_t argc, void **argv)
         Ext::template Call<T>(functionId, argc, argv);
         return true;
     }
-    return metaTypeCallImpl<T, Exts...>(functionType, argc, argv);
+    return metaTypeCallImpl<T, Exts...>(functionType, argc, argv, data);
 }
 
 template<class Extension, class... Extensions>
@@ -68,9 +68,7 @@ TypeId qTypeId()
     auto proposedTypeInfo = P::metaTypeCallImpl<T, Extension, Extensions...>;
     auto typeInfo = qTypeIdImpl<T>(proposedTypeInfo);
     N::Extensions::P::PostRegisterAction<T, Extension, Extensions...>(typeInfo);
-    if (typeInfo->call != proposedTypeInfo) {
-        // This check is a bit too broad as order of the extensions should not matter
-        // and this allows to re-register some Extensions multiple times.
+    if (!typeInfo->isExtensionKnown(proposedTypeInfo)) {
         static N::P::ExtensionNode node {nullptr, proposedTypeInfo, N::P::areExtensionsAccepting<Extension, Extensions...>};
         void *argv[] = {&node};
         typeInfo->call(N::P::RegisterExtension, 1, argv);

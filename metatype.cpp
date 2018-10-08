@@ -2,11 +2,11 @@
 
 #include "metatype_impl.h"
 
-bool N::P::ExtensionNode::CallIfAcceptedInChain(ExtensionNode *node, size_t extensionTag, size_t functionType, size_t argc, void **argv)
+bool N::P::ExtensionNode::CallIfAcceptedInChain(ExtensionNode *node, size_t extensionTag, size_t functionType, size_t argc, void **argv, void *data)
 {
     while (node) {
         if (node->isAccepted(extensionTag)) {
-            node->Call(functionType, argc, argv);
+            node->Call(functionType, argc, argv, data);
             return true;
         }
         node = node->next.load();
@@ -25,13 +25,13 @@ void N::P::ExtensionNode::AppendToTheChain(QAtomicPointer<ExtensionNode> &first,
     newNode->next.testAndSetRelease(newNode, nullptr);
 }
 
-bool N::P::metaTypeCallImpl(QAtomicPointer<ExtensionNode> &first, size_t functionType, size_t argc, void **argv)
+bool N::P::metaTypeCallImpl(QAtomicPointer<ExtensionNode> &first, size_t functionType, size_t argc, void **argv, void *data)
 {
     // TODO this bit fidling should be in automatically sync with alignof(Extensions::Ex<void>::offset_)
     constexpr auto extensionMask = (std::numeric_limits<size_t>::max() >> 3) << 3;
     auto extensionTag = functionType & extensionMask;
 
-    if (ExtensionNode::CallIfAcceptedInChain(first.load(), extensionTag, functionType, argc, argv))
+    if (ExtensionNode::CallIfAcceptedInChain(first.load(), extensionTag, functionType, argc, argv, data))
         return true;
     if (functionType == RegisterExtension) {
         Q_ASSERT(argc == 1);
