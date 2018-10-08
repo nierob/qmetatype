@@ -54,15 +54,15 @@ public:
     {
          return tag == offset();
     }
-    static void Call(TypeId metaTypeCall, quint8 operation, size_t argc, void **argv)
+    static void Call(TypeId id, quint8 operation, size_t argc, void **argv)
     {
-        if (!metaTypeCall(operation + offset(), argc, argv)) {
+        if (!id->call(operation + offset(), argc, argv)) {
             auto extensionName = P::typeNameFromType<Extension>();
             // TODO depending on our name registration strategy we can get the type name too. Otherwise we would could fallback
             // to dladdr as the typeId is a function pointer so we may be able to parse it if debug symbols are there.
             qWarning() << QLatin1String("WARN Requested metatype extension '") +
                           QString::fromLocal8Bit(extensionName.data(), extensionName.length()) + QLatin1String("' is not registed for this type:")
-                          << (void*)metaTypeCall;
+                          << (void*)id;
         }
     }
     template<class T> constexpr static void PreRegisterAction() {}

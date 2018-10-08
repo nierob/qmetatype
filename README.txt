@@ -44,8 +44,8 @@ Hard requirements, without them the there is no point in changing anything:
 The proposed solution
 =====================
 
-We introduce a metetype call similar to QObject metacall. Type id is just an address to that function. Access to any
-stored data or functionality would be achieved always through that call, just with different arguments. That creates
+We introduce a metetype call similar to QObject metacall. Type id is just an address to structure containging that function.
+Access to any stored data or functionality would be achieved always through that call, just with different arguments. That creates
 small, but I believe acceptable, overhead of dispatching the calls. In return we get quite a lot of flexibility and
 BC safety for modifications.
 

@@ -57,8 +57,8 @@ bool areExtensionsAccepting(size_t tag) {
 template<class T>
 TypeId qTypeIdImpl(P::QtMetTypeCall info)
 {
-    static P::QtMetTypeCall typeInfo{info};
-    return typeInfo;
+    static P::TypeIdData typeData{nullptr, info};
+    return &typeData;
 }
 
 template<class T, class Extension, class... Extensions>
@@ -68,12 +68,12 @@ TypeId qTypeId()
     auto proposedTypeInfo = P::metaTypeCallImpl<T, Extension, Extensions...>;
     auto typeInfo = qTypeIdImpl<T>(proposedTypeInfo);
     N::Extensions::P::PostRegisterAction<T, Extension, Extensions...>(typeInfo);
-    if (typeInfo != proposedTypeInfo) {
+    if (typeInfo->call != proposedTypeInfo) {
         // This check is a bit too broad as order of the extensions should not matter
         // and this allows to re-register some Extensions multiple times.
         static N::P::ExtensionNode node {nullptr, proposedTypeInfo, N::P::areExtensionsAccepting<Extension, Extensions...>};
         void *argv[] = {&node};
-        typeInfo(N::P::RegisterExtension, 1, argv);
+        typeInfo->call(N::P::RegisterExtension, 1, argv);
     }
     return typeInfo;
 }
