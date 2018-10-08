@@ -34,3 +34,4 @@ template<class T> TypeId qTypeId();
 
 }  // namespace N
 
+QDebug operator<<(QDebug &dbg, N::TypeId id);
