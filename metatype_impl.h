@@ -47,7 +47,7 @@ template<class Extension, class... Extensions>
 bool areExtensionsAccepting(size_t tag) {
     if (Extension::isAccepted(tag))
         return true;
-    if constexpr (sizeof...(Extensions))
+    if constexpr (bool(sizeof...(Extensions)))
         return areExtensionsAccepting<Extensions...>(tag);
     return false;
 }

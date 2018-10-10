@@ -23,7 +23,7 @@ template<class T, class Extension, class... Extensions>
 void PreRegisterAction()
 {
     Extension::template PreRegisterAction<T>();
-    if constexpr (sizeof...(Extensions))
+    if constexpr (bool(sizeof...(Extensions)))
         PreRegisterAction<T, Extensions...>();
 }
 
@@ -31,7 +31,7 @@ template<class T, class Extension, class... Extensions>
 void PostRegisterAction(TypeId id)
 {
     Extension::template PostRegisterAction<T>(id);
-    if constexpr (sizeof...(Extensions))
+    if constexpr (bool(sizeof...(Extensions)))
         PostRegisterAction<T, Extensions...>(id);
 }
 
