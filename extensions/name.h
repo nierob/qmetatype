@@ -19,7 +19,7 @@ struct Name_dlsym: public Ex<Name_dlsym>
                 Q_ASSERT(argc == 1);
                 void *&result = argv[0];
                 // TODO make it compile time and return const char* probably.
-                constexpr std::string_view str = P::typeNameFromType<T>();
+                std::string_view str = P::typeNameFromType<T>();
                 *static_cast<QString*>(result) = QString::fromLocal8Bit(str.data(), str.length());
                 break;
             }
@@ -90,7 +90,7 @@ struct Name_hash: public Name_dlsym
     static void PostRegisterAction(TypeId id)
     {
         if (firstPostCall<T>()) {
-            constexpr std::string_view str = P::typeNameFromType<T>();
+            std::string_view str = P::typeNameFromType<T>();
             nameToId[QString::fromLocal8Bit(str.data(), str.length())] = id;
             lock.unlock();
         }
