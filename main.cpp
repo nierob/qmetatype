@@ -1,6 +1,25 @@
 #include <QtCore>
 #include "metatype.h"
 
+struct RuntimeData
+{
+    // TODO The interfacehere is slightly ugly, maby makro, or maybe tuple like thing?
+    // or maybe it is possible to merge it into createType function
+    N::P::TypeIdData typeId;
+    N::Extensions::Name_hash::RuntimeData nameEx;
+    N::Extensions::Allocation::RuntimeData allocEx;
+
+    template<class T>
+    static constexpr size_t offsetOfProperty()
+    {
+        if constexpr (std::is_same_v<T, N::Extensions::Name_hash::RuntimeData>)
+            return offsetof(RuntimeData, nameEx);
+        if constexpr (std::is_same_v<T, N::Extensions::Allocation::RuntimeData>)
+            return offsetof(RuntimeData, allocEx);
+        return 0;
+    }
+};
+
 int main(int argc, char** argv)
 {
     Q_UNUSED(argc);
@@ -48,5 +67,12 @@ int main(int argc, char** argv)
     qDebug() << "Lookup type id by name:" << N::Extensions::Name_hash::fromName("char");
     qDebug() << "Lookup type id by name returned correct id:" << (N::Extensions::Name_hash::fromName("char") == charId);
     qDebug() << "Char by default is known as:" << N::Extensions::Name_hash::name(charId);
+
+
+    qDebug() << "----------------Runtime--------------------------";
+    RuntimeData runtimeAdditionalData {{}, {"RuntimeTypeName"}, {/*size*/ 12, /*align*/ 4}};
+    auto runtimeTypeId = N::Extensions::createType<N::Extensions::Name_hash, N::Extensions::Allocation>(&runtimeAdditionalData);
+    Q_ASSERT(runtimeTypeId == reinterpret_cast<N::TypeId>(&runtimeAdditionalData));  // TODO think about that
+    qDebug() << "Custom type was created:" << runtimeTypeId;
     return 0;
 }

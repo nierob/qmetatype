@@ -9,6 +9,14 @@ struct Allocation : public Ex<Allocation>
     Q_STATIC_ASSERT(sizeof(void*) >= sizeof(size_t));
 
     enum Operations {Create, Destroy, Construct, Destruct, SizeOf, AlignOf};
+    typedef QPair<size_t, size_t> RuntimeData;
+
+    template<qptrdiff offset>
+    static ::N::P::QtMetTypeCall createType(TypeId id)
+    {
+        //TODO
+        return nullptr;
+    }
 
     template<class T>
     static void Call(size_t functionType, size_t argc, void **argv)

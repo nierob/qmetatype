@@ -8,6 +8,7 @@ namespace N::Extensions
 
 struct Name_dlsym: public Ex<Name_dlsym>
 {
+    typedef QString RuntimeData;
     enum Operations {GetName, RegisterAlias};
 
     template<class T>
@@ -71,6 +72,43 @@ struct Name_dlsym: public Ex<Name_dlsym>
 
 struct Name_hash: public Name_dlsym
 {
+    // TODO how to move it to Base class?
+    static RuntimeData* typedData(void *data, qptrdiff offset) { return (RuntimeData*)(static_cast<char*>(data) + offset);}
+
+    template<qptrdiff Offset>
+    static bool runtimeCall(size_t functionType, size_t argc, void **argv, void *data)
+    {
+        qDebug() << Q_FUNC_INFO << argc << functionType << GetName;
+        switch (functionType)
+        {
+            case GetName:
+            {
+                Q_ASSERT(argc == 1);
+                void *&result = argv[0];
+                Q_ASSERT(data);
+                *static_cast<QString *>(result) = *typedData(data, Offset);
+                break;
+            }
+        }
+        return true; // TODO
+    }
+
+    static void registerName(TypeId id, const QString &name)
+    {
+        qDebug() << Q_FUNC_INFO << name;
+        lock.lockForWrite();
+        nameToId[name] = id;
+        lock.unlock();
+    }
+
+    template<qptrdiff Offset>
+    static ::N::P::QtMetTypeCall createType(TypeId id)
+    {
+        RuntimeData *name = typedData(id->data, Offset);
+        registerName(id, *name);
+        return runtimeCall<Offset>;
+    }
+
     static TypeId fromName(const QString &name)
     {
         lock.lockForRead();

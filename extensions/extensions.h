@@ -2,6 +2,8 @@
 
 #include <QtCore>
 #include "metatype_fwd.h"
+#include <tuple>
+#include <utility>
 
 namespace N {
 
@@ -37,10 +39,35 @@ void PostRegisterAction(TypeId id)
 
 } // namespace P
 
+template<class Extension, class... Extensions, class Data>
+TypeId createType(Data *data)
+{
+    static_assert(std::is_standard_layout<Data>::value);
+    TypeId id = reinterpret_cast<TypeId>(data);
+    if (!id->data)
+        id->data = data;
+    using RuntimeData = typename Extension::RuntimeData;
+    // TODO This may be slightly evil...
+    constexpr qptrdiff dataOffset = Data::template offsetOfProperty<RuntimeData>();
+    static_assert(dataOffset >= sizeof(N::P::TypeIdData));  // the first is TypeIdData
+    ::N::P::QtMetTypeCall call = Extension::template createType<dataOffset>(id);
+    if (id->_call) {
+        // register
+    } else {
+        id->_call = call;
+    }
+    if constexpr (bool(sizeof...(Extensions)))
+        createType<Extensions...>(data);
+    if (!id->_call) {
+        // add dummy
+    }
+    return id;
+}
+
 template<class Extension>
 class Ex
 {
-    static inline size_t offset()
+    static inline size_t tag()
     {
         // Used only for unique address range, allows 8 operations
         // TODO double check if there is no better option then alignment
@@ -51,11 +78,11 @@ public:
     typedef Ex<Extension> Base;
     static inline bool isAccepted(size_t tag)
     {
-         return tag == offset();
+         return tag == Ex<Extension>::tag();
     }
     static void Call(TypeId id, quint8 operation, size_t argc, void **argv)
     {
-        if (!id->call(operation + offset(), argc, argv)) {
+        if (!id->call(operation + tag(), argc, argv)) {
             auto extensionName = P::typeNameFromType<Extension>();
             // TODO depending on our name registration strategy we can get the type name too. Otherwise we would could fallback
             // to dladdr as the typeId is a function pointer so we may be able to parse it if debug symbols are there.
