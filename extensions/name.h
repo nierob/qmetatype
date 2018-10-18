@@ -8,13 +8,13 @@ namespace N::Extensions
 
 struct Name_dlsym: public Ex<Name_dlsym>
 {
-    typedef QString RuntimeData;
     enum Operations {GetName, RegisterAlias};
 
     template<class T>
-    static void Call(size_t functionType, size_t argc, void **argv)
+    static void Call(quint8 operation, size_t argc, void **argv, void *data = nullptr)
     {
-        switch (functionType)
+        Q_ASSERT(!data);
+        switch (operation)
         {
             case GetName: {
                 Q_ASSERT(argc == 1);
@@ -70,43 +70,65 @@ struct Name_dlsym: public Ex<Name_dlsym>
 };
 
 
-struct Name_hash: public Name_dlsym
+struct Name_hash: public Ex<Name_hash>
 {
-    // TODO how to move it to Base class?
-    static RuntimeData* typedData(void *data, qptrdiff offset) { return (RuntimeData*)(static_cast<char*>(data) + offset);}
+    enum Operations {GetName, RegisterAlias};
 
-    template<qptrdiff Offset>
-    static bool runtimeCall(size_t functionType, size_t argc, void **argv, void *data)
+    struct RuntimeData
     {
-        qDebug() << Q_FUNC_INFO << argc << functionType << GetName;
-        switch (functionType)
+        QString name;
+        // TODO hide it, maybe through friend function
+        Name_hash createExtensionBase(TypeId id)
         {
-            case GetName:
+            registerName(id, name);
+            auto Call = [](quint8 operation, size_t argc, void **argv, void *data)
             {
+                Q_ASSERT(data);
+                auto typedData = static_cast<RuntimeData*>(data);
+                switch (operation)
+                {
+                    case GetName: {
+                        Q_ASSERT(argc == 1);
+                        void *&result = argv[0];
+                        *static_cast<QString*>(result) = typedData->name;
+                        break;
+                    }
+                }
+            };
+            return createFromBasicData(Call, this);
+        }
+    };
+
+    static QString name(TypeId id)
+    {
+        QString name;
+        void *argv[] = {&name};
+        Base::Call(id, GetName, 1, argv);
+        return name;
+    }
+
+    template<class T>
+    static void Call(quint8 operation, size_t argc, void **argv, void *data = nullptr)
+    {
+        Q_ASSERT(!data);
+        switch (operation)
+        {
+            case GetName: {
                 Q_ASSERT(argc == 1);
                 void *&result = argv[0];
-                Q_ASSERT(data);
-                *static_cast<QString *>(result) = *typedData(data, Offset);
+                // TODO make it compile time and return const char* probably.
+                std::string_view str = P::typeNameFromType<T>();
+                *static_cast<QString*>(result) = QString::fromLocal8Bit(str.data(), str.length());
                 break;
             }
         }
-        return true; // TODO
     }
 
     static void registerName(TypeId id, const QString &name)
     {
-        qDebug() << Q_FUNC_INFO << name;
         lock.lockForWrite();
         nameToId[name] = id;
         lock.unlock();
-    }
-
-    template<qptrdiff Offset>
-    static ::N::P::QtMetTypeCall createType(TypeId id)
-    {
-        RuntimeData *name = typedData(id->data, Offset);
-        registerName(id, *name);
-        return runtimeCall<Offset>;
     }
 
     static TypeId fromName(const QString &name)

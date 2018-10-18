@@ -1,23 +1,10 @@
 #include <QtCore>
 #include "metatype.h"
 
-struct RuntimeData
+struct RuntimeData: N::P::TypeIdData
 {
-    // TODO The interfacehere is slightly ugly, maby makro, or maybe tuple like thing?
-    // or maybe it is possible to merge it into createType function
-    N::P::TypeIdData typeId;
-    N::Extensions::Name_hash::RuntimeData nameEx;
-    N::Extensions::Allocation::RuntimeData allocEx;
-
-    template<class T>
-    static constexpr size_t offsetOfProperty()
-    {
-        if constexpr (std::is_same_v<T, N::Extensions::Name_hash::RuntimeData>)
-            return offsetof(RuntimeData, nameEx);
-        if constexpr (std::is_same_v<T, N::Extensions::Allocation::RuntimeData>)
-            return offsetof(RuntimeData, allocEx);
-        return 0;
-    }
+    // TODO maybe it is possible to merge it into createType function
+    std::tuple<N::Extensions::Name_hash::RuntimeData, N::Extensions::Allocation::RuntimeData> extensions;
 };
 
 int main(int argc, char** argv)
@@ -34,7 +21,7 @@ int main(int argc, char** argv)
     int *i = static_cast<int*>(N::Extensions::Allocation::create(intId, &intCopy));
     qDebug() << "create(int):" << *i;
     qDebug() << "try to call qdebug stream (int), should result in error";
-    N::Extensions::QDebugStream::qDebugStream(intId, qDebug() << "   Testing qdebug stream output, should result in error", i);
+    N::Extensions::QDebugStream::qDebugStream(intId, qDebug() << "   Testing qdebug stream output, should result in error ^", i);
     qDebug() << "let's try to re-register the type with new a extension";
     N::qTypeId<int, N::Extensions::QDebugStream>();
     qDebug() << "try to call qdebug stream (int):";
@@ -70,9 +57,11 @@ int main(int argc, char** argv)
 
 
     qDebug() << "----------------Runtime--------------------------";
-    RuntimeData runtimeAdditionalData {{}, {"RuntimeTypeName"}, {/*size*/ 12, /*align*/ 4}};
-    auto runtimeTypeId = N::Extensions::createType<N::Extensions::Name_hash, N::Extensions::Allocation>(&runtimeAdditionalData);
+    RuntimeData runtimeAdditionalData{{}, { N::Extensions::Name_hash::RuntimeData{{"RuntimeTypeName"}},
+                                            N::Extensions::Allocation::RuntimeData{std::size_t{12}, std::align_val_t{4}}}};
+    auto runtimeTypeId = N::Extensions::initializeType(&runtimeAdditionalData);
     Q_ASSERT(runtimeTypeId == reinterpret_cast<N::TypeId>(&runtimeAdditionalData));  // TODO think about that
     qDebug() << "Custom type was created:" << runtimeTypeId;
+    qDebug() << "Custom type size(12) and align(4) is:" << N::Extensions::Allocation::sizeOf(runtimeTypeId) << N::Extensions::Allocation::alignOf(runtimeTypeId);
     return 0;
 }

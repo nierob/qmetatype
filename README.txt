@@ -8,7 +8,7 @@ The current system is quite good and fast, but it has some deficiances.
 A. Usability:
 - It is impossible to register types that are not constructible, the orginal requirement comes from
   QVariant and has no sense in QMetaType context.
-- Unloading plugins is not supported by the QMetaType, we agreed that Qt is not supporting that case
+- Unloading plugins is not supported by the QMetaType. We agreed that Qt is not supporting that case,
   but people still do it and the current implementation leaks memory. Same happens for dynamically
   created types, there is no way to "unregister" a type, even if such function exists.
 - Q_DECLARE_METATYPE is confusing for users, it got better as now we strongly recomand to place it
@@ -44,10 +44,10 @@ Hard requirements, without them the there is no point in changing anything:
 The proposed solution
 =====================
 
-We introduce a metetype call similar to QObject metacall. Type id is just an address to structure containging that function.
-Access to any stored data or functionality would be achieved always through that call, just with different arguments. That creates
-small, but I believe acceptable, overhead of dispatching the calls. In return we get quite a lot of flexibility and
-BC safety for modifications.
+We introduce a metetype call similar to QObject metacall. Type id is just an address to structure containging that function
+plus some data used for runtime created types. Access to any stored data or functionality would be achieved always through
+the call, just with different arguments. That creates small, but I believe acceptable, overhead of dispatching the calls.
+In return we get quite a lot of flexibility and BC safety for modifications. Simial concept is used in QObject metatcall.
 
 
 Why not use just pure const data access, aka why to pay for an indirect function call?
@@ -82,14 +82,14 @@ void metaTypeCall(size_t functionType, size_t argc, void **argv)
 {
     switch (functionType) {
         case Construct:
-                void *&result = argv[0];
-                auto storage = argv[1];
-                if (argc == 2) {
-                    result = new (storage) T{};
-                } else {
-                    auto copy = static_cast<const T*>(argv[0]);
-                    result = new (storage) T{*copy};
-                }
+            void *&result = argv[0];
+            auto storage = argv[1];
+            if (argc == 2) {
+                result = new (storage) T{};
+            } else {
+                auto copy = static_cast<const T*>(argv[0]);
+                result = new (storage) T{*copy};
+            }
         }
         ...
     }
@@ -108,4 +108,11 @@ In addition there are some minor bonuses like reduction in functions wrapper cou
 and improve resulting code.
 
 
+Why not use just a function pointer as id?
+--------------------------------------------------------------------------------------
+Because we need to support types defined at runtime. That means that we need to attach
+some data to the call. The data may be known only at runtime so even template functions
+would not work, we could use std::function to support for example lambdas, but that one
+is not only quite big and could cause memory allocations at "registration" time, but
+also it was hard to define the data ownership, which was causing memory leaks.
 

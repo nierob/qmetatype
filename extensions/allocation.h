@@ -1,5 +1,6 @@
 #pragma once
 #include "extensions.h"
+#include <new>
 
 namespace N::Extensions
 {
@@ -8,20 +9,55 @@ struct Allocation : public Ex<Allocation>
 {
     Q_STATIC_ASSERT(sizeof(void*) >= sizeof(size_t));
 
-    enum Operations {Create, Destroy, Construct, Destruct, SizeOf, AlignOf};
-    typedef QPair<size_t, size_t> RuntimeData;
-
-    template<qptrdiff offset>
-    static ::N::P::QtMetTypeCall createType(TypeId id)
+    static void RuntimeCall(quint8 operation, size_t argc, void **argv, void *data)
     {
-        //TODO
-        return nullptr;
+        // TODO Mybe we should also have some init functions in the RuntimeData
+        auto typeData = static_cast<RuntimeData*>(data);
+        switch (operation) {
+            case Create: {
+                Q_ASSERT_X(argc == 1, "N::Extensions::Allocation", "This type can not be copy constructed"); // TODO think about that case, do we need extra protocol?
+                void *&result = argv[0];
+                result = ::operator new(typeData->size, typeData->align);
+                break;
+            }
+            case Destroy: {
+                Q_ASSERT(argc == 1);
+                ::operator delete(argv[0], typeData->size, typeData->align);
+                break;
+            }
+            case SizeOf: {
+                Q_ASSERT(argc == 1);
+                void *&result = argv[0];
+                result = (void*)(typeData->size);
+                break;
+            }
+            case AlignOf: {
+                Q_ASSERT(argc == 1);
+                void *&result = argv[0];
+                result = (void*)(typeData->align);
+                break;
+            }
+        }
     }
 
-    template<class T>
-    static void Call(size_t functionType, size_t argc, void **argv)
+public:
+    enum Operations {Create, Destroy, Construct, Destruct, SizeOf, AlignOf};
+    struct RuntimeData
     {
-        switch (functionType)
+        std::size_t size;
+        std::align_val_t align;
+        Allocation createExtensionBase(TypeId id)
+        {
+            Q_UNUSED(id);
+            return {RuntimeCall, this};
+        }
+    };
+
+    template<class T>
+    static void Call(quint8 operation, size_t argc, void **argv, void *data = nullptr)
+    {
+        Q_ASSERT(!data);
+        switch (operation)
         {
             case Create: {
                 Q_ASSERT(argc <= 2);

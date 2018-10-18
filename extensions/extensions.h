@@ -10,6 +10,8 @@ namespace N {
 namespace Extensions
 {
 
+    using Tag = size_t;
+
 namespace P {
 template<class QtTypeToIntrospect> constexpr std::string_view typeNameFromType()
 {
@@ -39,62 +41,63 @@ void PostRegisterAction(TypeId id)
 
 } // namespace P
 
-template<class Extension, class... Extensions, class Data>
-TypeId createType(Data *data)
+struct ExtensionBase
 {
-    static_assert(std::is_standard_layout<Data>::value);
-    TypeId id = reinterpret_cast<TypeId>(data);
-    if (!id->data)
-        id->data = data;
-    using RuntimeData = typename Extension::RuntimeData;
-    // TODO This may be slightly evil...
-    constexpr qptrdiff dataOffset = Data::template offsetOfProperty<RuntimeData>();
-    static_assert(dataOffset >= sizeof(N::P::TypeIdData));  // the first is TypeIdData
-    ::N::P::QtMetTypeCall call = Extension::template createType<dataOffset>(id);
-    if (id->_call) {
-        // register
-    } else {
-        id->_call = call;
+    N::P::QtMetTypeCall call = nullptr;
+    void *data = nullptr;
+
+    void operator()(quint8 operation, size_t argc, void** argv)
+    {
+        call(operation, argc, argv, data);
     }
-    if constexpr (bool(sizeof...(Extensions)))
-        createType<Extensions...>(data);
-    if (!id->_call) {
-        // add dummy
-    }
-    return id;
-}
+};
 
 template<class Extension>
-class Ex
+class Ex : public ExtensionBase
 {
-    static inline size_t tag()
+public:
+    typedef Ex<Extension> Base;
+
+    static inline Tag tag()
     {
         // Used only for unique address range, allows 8 operations
         // TODO double check if there is no better option then alignment
+        // TODO can we change it to be typeId? That would be meta cool
         Q_DECL_ALIGN(8) static char offset_;
-        return (size_t)&offset_;
+        return (Tag)&offset_;
     }
-public:
-    typedef Ex<Extension> Base;
-    static inline bool isAccepted(size_t tag)
-    {
-         return tag == Ex<Extension>::tag();
-    }
-    static void Call(TypeId id, quint8 operation, size_t argc, void **argv)
-    {
-        if (!id->call(operation + tag(), argc, argv)) {
-            auto extensionName = P::typeNameFromType<Extension>();
-            // TODO depending on our name registration strategy we can get the type name too. Otherwise we would could fallback
-            // to dladdr as the typeId is a function pointer so we may be able to parse it if debug symbols are there.
-            qWarning() << QLatin1String("WARN Requested metatype extension '") +
-                          QString::fromLocal8Bit(extensionName.data(), extensionName.length()) + QLatin1String("' is not registed for this type:")
-                          << (void*)id;
-        }
-    }
+
     template<class T> constexpr static void PreRegisterAction() {}
     template<class T> constexpr static void PostRegisterAction(TypeId id) { Q_UNUSED(id); }
+
+    static void Call(TypeId id, quint8 operation, size_t argc, void **argv);
+
+    template<class T>
+    static inline Extension createExtension()
+    {
+        return std::move(createFromBasicData<T>());
+    }
+    template<class T=void>
+    static inline Extension createFromBasicData(decltype(ExtensionBase::call) call = Extension::template Call<T>, void *data = nullptr)
+    {
+        Extension extension;
+        extension.call = call;
+        extension.data = data;
+        return std::move(extension);
+    }
 };
 
+template<class TypeData>
+TypeId initializeType(TypeData *data)
+{
+    static_assert(std::is_base_of_v<N::P::TypeIdData, TypeData>);
+    auto registerExtension = [data](auto&... ex) {
+        (data->registerExtensions(ex.createExtensionBase(data)), ...);
+    };
+    std::apply(registerExtension, data->extensions);
+    return data;
+}
 } // namespace Extensions
 
 } // namespace N
+QDebug operator<<(QDebug &dbg, const N::Extensions::ExtensionBase &ex);

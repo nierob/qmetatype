@@ -49,15 +49,15 @@ template<class T, bool = P::HasStreamOperator<T, QDataStream>::Value>
 class DataStreamImpl
 {
 public:
-    static inline void Call(size_t functionType, size_t argc, void **argv);
+    static inline void Call(quint8 operation, size_t argc, void **argv);
 };
 template<class T>
 class DataStreamImpl<T, false>
 {
 public:
-    static void Call(size_t functionType, size_t argc, void **argv)
+    static void Call(quint8 operation, size_t argc, void **argv)
     {
-        Q_UNUSED(functionType);
+        Q_UNUSED(operation);
         Q_UNUSED(argc);
         Q_UNUSED(argv);
     }
@@ -67,16 +67,17 @@ struct DataStream: public Ex<DataStream>
 {
     enum Operations {SaveData, LoadData};
     template<class T>
-    static void Call(size_t functionType, size_t argc, void **argv)
+    static void Call(quint8 operation, size_t argc, void **argv, void *data = nullptr)
     {
-        DataStreamImpl<T>::Call(functionType, argc, argv);
+        Q_UNUSED(data);
+        DataStreamImpl<T>::Call(operation, argc, argv);
     }
 };
 
 template<class T, bool hasStreamOperator>
-inline void DataStreamImpl<T, hasStreamOperator>::Call(size_t functionType, size_t argc, void **argv)
+inline void DataStreamImpl<T, hasStreamOperator>::Call(quint8 operation, size_t argc, void **argv)
 {
-    switch (functionType)
+    switch (operation)
     {
         case DataStream::SaveData: {
             Q_ASSERT(argc == 2);
@@ -98,15 +99,15 @@ template<class T, bool = P::HasSaveStreamOperator<T, QDebug>::Value>
 class QDebugStreamImpl
 {
 public:
-    static inline void Call(size_t functionType, size_t argc, void **argv);
+    static inline void Call(quint8 operation, size_t argc, void **argv);
 };
 template<class T>
 class QDebugStreamImpl<T, false>
 {
 public:
-    static void Call(size_t functionType, size_t argc, void **argv)
+    static void Call(quint8 operation, size_t argc, void **argv)
     {
-        Q_UNUSED(functionType);
+        Q_UNUSED(operation);
         Q_UNUSED(argc);
         Q_UNUSED(argv);
     }
@@ -116,9 +117,10 @@ struct QDebugStream: public Ex<QDebugStream>
 {
     enum Operations {SaveData};
     template<class T>
-    static void Call(size_t functionType, size_t argc, void **argv)
+    static void Call(quint8 operation, size_t argc, void **argv, void *data = nullptr)
     {
-        return QDebugStreamImpl<T>::Call(functionType, argc, argv);
+        Q_ASSERT(!data);
+        return QDebugStreamImpl<T>::Call(operation, argc, argv);
     }
 
     static void qDebugStream(TypeId id, QDebug &dbg, const void *data)
@@ -129,9 +131,9 @@ struct QDebugStream: public Ex<QDebugStream>
 };
 
 template<class T, bool hasStreamOperator>
-inline void QDebugStreamImpl<T, hasStreamOperator>::Call(size_t functionType, size_t argc, void **argv)
+inline void QDebugStreamImpl<T, hasStreamOperator>::Call(quint8 operation, size_t argc, void **argv)
 {
-    switch (functionType)
+    switch (operation)
     {
         case QDebugStream::SaveData: {
             Q_ASSERT(argc == 2);
