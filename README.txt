@@ -39,7 +39,9 @@ Hard requirements, without them the there is no point in changing anything:
 - Simplify the code: do not have distinction between builtins and custom types
 - Avoid code bloat: do not have distinction between builtins and custom types
 
-
+My focus:
+- extensions - so we are not fighting anymore about every bit and not every single type has to be registered
+- no Q_DECLARE_METATYPE - so user rarly would need to do anything (qt implictly would call qTypeId in most cases)
 
 The proposed solution
 =====================
