@@ -45,7 +45,7 @@ class Ex : public ExtensionBase
 public:
     typedef Ex<Extension> Base;
 
-    static inline Tag tag();
+    static inline TypeId typeId();
 
     template<class T> constexpr static void PreRegisterAction() {}
     template<class T> constexpr static void PostRegisterAction(TypeId id) { Q_UNUSED(id); }

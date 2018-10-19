@@ -178,5 +178,6 @@ private:
     }
 };
 
-
 }  // N::Extensions
+
+template<> N::TypeId N::qTypeId<N::Extensions::Name_hash, N::Extensions::Name_hash>();

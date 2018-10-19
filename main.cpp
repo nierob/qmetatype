@@ -79,5 +79,13 @@ int main(int argc, char** argv)
         qDebug() << "Custom type was created:" << runtimeTypeId;
         qDebug() << "Custom type size(2) and align(1) is:" << N::Extensions::Allocation::sizeOf(runtimeTypeId) << N::Extensions::Allocation::alignOf(runtimeTypeId);
     }
+
+    qDebug() << "----------------Extensions are also registered--------------------------";
+    {
+        auto nameId = N::Extensions::Name_hash::fromName("N::Extensions::Name_hash");
+        qDebug() << "For example name recovering extensions id is there:" << nameId;
+        auto allocId = N::Extensions::Name_hash::fromName("N::Extensions::Allocation");
+        qDebug() << "Same for allocation:" << allocId;
+    }
     return 0;
 }

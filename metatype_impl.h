@@ -9,42 +9,41 @@
 
 namespace N {
 
-template<class Extension> Extensions::Tag Extensions::Ex<Extension>::tag()
+template<class Extension> TypeId Extensions::Ex<Extension>::typeId()
 {
-    // Used only for unique address range, allows 8 operations
+    // Used for unique address range and extensions handling should allows X operations
+    // TODO check operation count and eforce it
     // TODO double check if there is no better option then alignment
-    // TODO can we change it to be typeId? That would be meta cool
-    Q_DECL_ALIGN(8) static char offset_;
-    return (Tag)&offset_;
+    return qTypeId<Extension, Name_hash>();
 }
 
 namespace P {
 
-bool TypeIdData::call(Extensions::Tag tag, quint8 operation, size_t argc, void **argv)
+bool TypeIdData::call(TypeId extensionId, quint8 operation, size_t argc, void **argv)
 {
-    auto exIter = knownExtensions.find(tag);
+    auto exIter = knownExtensions.find(extensionId);
     if (exIter == knownExtensions.cend())
         return false;
     exIter->second(operation, argc, argv);
     return true;
 }
 
-bool TypeIdData::isExtensionKnown(Extensions::Tag tag) const
+bool TypeIdData::isExtensionKnown(TypeId extensionId) const
 {
-    return knownExtensions.find(tag) != knownExtensions.end();
+    return knownExtensions.find(extensionId) != knownExtensions.end();
 }
 
 template<class Extension, class... Extensions>
 void TypeIdData::registerExtensions(Extension extension, Extensions... extensions)
 {
-    registerExtension(Extension::tag(), extension);
+    registerExtension(Extension::typeId(), extension);
     if constexpr (bool(sizeof...(Extensions)))
         registerExtensions(extensions...);
 }
 
-void TypeIdData::registerExtension(Extensions::Tag tag, Extensions::ExtensionBase extension)
+void TypeIdData::registerExtension(TypeId extensionId, Extensions::ExtensionBase extension)
 {
-    knownExtensions.try_emplace(tag, extension);
+    knownExtensions.try_emplace(extensionId, extension);
 }
 
 }  // namespace P
@@ -79,14 +78,13 @@ TypeId qTypeId()
 template<class Extension>
 inline void Extensions::Ex<Extension>::Call(TypeId id, quint8 operation, size_t argc, void **argv)
 {
-    if (!id->call(tag(), operation, argc, argv)) {
-        auto extensionName = P::typeNameFromType<Extension>();
+    if (!id->call(typeId(), operation, argc, argv)) {
+        auto extensionName = Name_dlsym::name(qTypeId<Extension, Name_dlsym>());
         // TODO depending on our name registration strategy we can get the type name too. Otherwise we would could fallback
         // to dladdr as the typeId is a function pointer so we may be able to parse it if debug symbols are there.
         // TODO Think when we need the warning, sometimes we want just to probe if it is possible to do stuff
-        qWarning() << QLatin1String("WARN Requested metatype extension '") +
-                      QString::fromLocal8Bit(extensionName.data(), extensionName.length()) + QLatin1String("' is not registed for this type:")
-                      << (void*)id;
+        qWarning() << QLatin1String("WARN Requested metatype extension ") + extensionName + QLatin1String(" is not registed for this type:")
+                      << id;
     }
 }
 
