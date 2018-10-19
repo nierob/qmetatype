@@ -9,44 +9,43 @@
 
 namespace N {
 
+template<class Extension> Extensions::Tag Extensions::Ex<Extension>::tag()
+{
+    // Used only for unique address range, allows 8 operations
+    // TODO double check if there is no better option then alignment
+    // TODO can we change it to be typeId? That would be meta cool
+    Q_DECL_ALIGN(8) static char offset_;
+    return (Tag)&offset_;
+}
+
 namespace P {
 
-struct TypeIdData
+bool TypeIdData::call(Extensions::Tag tag, quint8 operation, size_t argc, void **argv)
 {
-    // TODO make it thread safe
-    // TODO it can be partially filled on compile time, maybe the map is not the right struct
-    // the point here is that we need a low cost mapping
-    // TODO Split API into public and private as it seems tht TypeIdData needs to be private
-    // otherwise we can not construct type at runtime
-    std::unordered_map<N::Extensions::Tag, N::Extensions::ExtensionBase> knownExtensions;
+    auto exIter = knownExtensions.find(tag);
+    if (exIter == knownExtensions.cend())
+        return false;
+    exIter->second(operation, argc, argv);
+    return true;
+}
 
-    bool call(N::Extensions::Tag tag, quint8 operation, size_t argc, void **argv)
-    {
-        auto exIter = knownExtensions.find(tag);
-        if (exIter == knownExtensions.cend())
-            return false;
-        exIter->second(operation, argc, argv);
-        return true;
-    }
+bool TypeIdData::isExtensionKnown(Extensions::Tag tag) const
+{
+    return knownExtensions.find(tag) != knownExtensions.end();
+}
 
-    bool isExtensionKnown(N::Extensions::Tag tag) const
-    {
-        return knownExtensions.find(tag) != knownExtensions.end();
-    }
+template<class Extension, class... Extensions>
+void TypeIdData::registerExtensions(Extension extension, Extensions... extensions)
+{
+    registerExtension(Extension::tag(), extension);
+    if constexpr (bool(sizeof...(Extensions)))
+        registerExtensions(extensions...);
+}
 
-    template<class Extension, class... Extensions>
-    void registerExtensions(Extension extension, Extensions... extensions)
-    {
-        registerExtension(Extension::tag(), extension);
-        if constexpr (bool(sizeof...(Extensions)))
-            registerExtensions(extensions...);
-    }
-
-    void registerExtension(N::Extensions::Tag tag, N::Extensions::ExtensionBase extension)
-    {
-        knownExtensions.try_emplace(tag, extension);
-    }
-};
+void TypeIdData::registerExtension(Extensions::Tag tag, Extensions::ExtensionBase extension)
+{
+    knownExtensions.try_emplace(tag, extension);
+}
 
 }  // namespace P
 
@@ -78,7 +77,7 @@ TypeId qTypeId()
 }
 
 template<class Extension>
-inline void N::Extensions::Ex<Extension>::Call(TypeId id, quint8 operation, size_t argc, void **argv)
+inline void Extensions::Ex<Extension>::Call(TypeId id, quint8 operation, size_t argc, void **argv)
 {
     if (!id->call(tag(), operation, argc, argv)) {
         auto extensionName = P::typeNameFromType<Extension>();
@@ -90,6 +89,5 @@ inline void N::Extensions::Ex<Extension>::Call(TypeId id, quint8 operation, size
                       << (void*)id;
     }
 }
-
 
 }  // namespace N

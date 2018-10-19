@@ -1,7 +1,7 @@
 #pragma once
-#include "extensions.h"
 #include <new>
 #include <memory>
+#include "extensions.h"
 
 namespace N::Extensions
 {

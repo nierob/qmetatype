@@ -4,14 +4,12 @@
 #include "metatype_fwd.h"
 #include <tuple>
 #include <utility>
+#include <string_view>
 
 namespace N {
 
 namespace Extensions
 {
-
-    using Tag = size_t;
-
 namespace P {
 template<class QtTypeToIntrospect> constexpr std::string_view typeNameFromType()
 {
@@ -41,31 +39,13 @@ void PostRegisterAction(TypeId id)
 
 } // namespace P
 
-struct ExtensionBase
-{
-    N::P::QtMetTypeCall call = nullptr;
-    void *data = nullptr;
-
-    void operator()(quint8 operation, size_t argc, void** argv)
-    {
-        call(operation, argc, argv, data);
-    }
-};
-
 template<class Extension>
 class Ex : public ExtensionBase
 {
 public:
     typedef Ex<Extension> Base;
 
-    static inline Tag tag()
-    {
-        // Used only for unique address range, allows 8 operations
-        // TODO double check if there is no better option then alignment
-        // TODO can we change it to be typeId? That would be meta cool
-        Q_DECL_ALIGN(8) static char offset_;
-        return (Tag)&offset_;
-    }
+    static inline Tag tag();
 
     template<class T> constexpr static void PreRegisterAction() {}
     template<class T> constexpr static void PostRegisterAction(TypeId id) { Q_UNUSED(id); }
