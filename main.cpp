@@ -57,11 +57,23 @@ int main(int argc, char** argv)
 
 
     qDebug() << "----------------Runtime--------------------------";
-    RuntimeData runtimeAdditionalData{{}, { N::Extensions::Name_hash::RuntimeData{{"RuntimeTypeName"}},
-                                            N::Extensions::Allocation::RuntimeData{std::size_t{12}, std::align_val_t{4}}}};
-    auto runtimeTypeId = N::Extensions::initializeType(&runtimeAdditionalData);
-    Q_ASSERT(runtimeTypeId == reinterpret_cast<N::TypeId>(&runtimeAdditionalData));  // TODO think about that
-    qDebug() << "Custom type was created:" << runtimeTypeId;
-    qDebug() << "Custom type size(12) and align(4) is:" << N::Extensions::Allocation::sizeOf(runtimeTypeId) << N::Extensions::Allocation::alignOf(runtimeTypeId);
+    {
+        auto runtimeAdditionalData = new RuntimeData{{}, { N::Extensions::Name_hash::RuntimeData{{"RuntimeTypeName"}},
+                                                           N::Extensions::Allocation::RuntimeData{std::size_t{12}, std::align_val_t{4}}}};
+        auto runtimeTypeHandle = N::Extensions::initializeType(runtimeAdditionalData);
+        auto runtimeTypeId = runtimeTypeHandle.id();
+        qDebug() << "Custom type was created:" << runtimeTypeId;
+        qDebug() << "Custom type size(12) and align(4) is:" << N::Extensions::Allocation::sizeOf(runtimeTypeId) << N::Extensions::Allocation::alignOf(runtimeTypeId);
+    }
+
+    qDebug() << "----------------Runtime with stack allocated definiton--------------------------";
+    {
+        RuntimeData runtimeAdditionalData{{}, { N::Extensions::Name_hash::RuntimeData{{"RuntimeTypeName"}},
+                                                N::Extensions::Allocation::RuntimeData{std::size_t{2}, std::align_val_t{1}}}};
+        auto runtimeTypeHandle = N::Extensions::initializeType<RuntimeData, N::Extensions::EmptyTypeIdHandleDeleter>(&runtimeAdditionalData);
+        auto runtimeTypeId = runtimeTypeHandle.id();
+        qDebug() << "Custom type was created:" << runtimeTypeId;
+        qDebug() << "Custom type size(2) and align(1) is:" << N::Extensions::Allocation::sizeOf(runtimeTypeId) << N::Extensions::Allocation::alignOf(runtimeTypeId);
+    }
     return 0;
 }
