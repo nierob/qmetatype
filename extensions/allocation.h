@@ -1,6 +1,7 @@
 #pragma once
 #include "extensions.h"
 #include <new>
+#include <memory>
 
 namespace N::Extensions
 {
@@ -120,12 +121,22 @@ public:
         Base::Call(id, AlignOf, 1, argv);
         return (size_t)argv[0];
     }
-    static void* create(TypeId id, const void *copy = nullptr)
+
+    struct Deleter
+    {
+        TypeId id;
+        void operator()(void *ptr) const
+        {
+            destroy(id, ptr);
+        }
+    };
+
+    static std::unique_ptr<void, Deleter> create(TypeId id, const void *copy = nullptr)
     {
         // TODO consider std::unique_ptr with destroy as deleter as a return type
         void *argv[] = {nullptr, const_cast<void*>(copy)};
         Base::Call(id, Create, copy ? 2 : 1, argv);
-        return argv[0];
+        return std::unique_ptr<void, Deleter>{argv[0], Deleter{id}};
     }
     static void destroy(TypeId id, void *obj)
     {
