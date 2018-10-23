@@ -3,16 +3,25 @@
 #include "metatype_impl.h"
 #include "extensions/name.h"
 
+namespace {
+using DataExtension = N::P::TypeIdDataExtended<1>::ExtArray;
+static const DataExtension *findInitialExtensionInTypeIdData(const N::P::TypeIdData *data, N::TypeId extensionId)
+{
+    auto fakeTypedItData = static_cast<const N::P::TypeIdDataExtended<1>*>(data); // Just to get the offset
+    auto firstInitialExtension = fakeTypedItData->initialExtensions;
+    for (auto extension = firstInitialExtension; extension != firstInitialExtension + data->extCount; ++extension) {
+        if (extension->id == extensionId)
+            return extension;
+    }
+    return nullptr;
+}
+} // namespace
+
 bool N::P::TypeIdData::call(TypeId extensionId, quint8 operation, size_t argc, void **argv)
 {
-    using DataExtension = TypeIdDataExtended<1>::ExtArray;
-    auto fakeTypedItData = static_cast<TypeIdDataExtended<1>*>(this); // Just to get the offset
-    const auto firstInitialExtension = fakeTypedItData->initialExtensions;
-    for (auto extension = firstInitialExtension; extension != firstInitialExtension + extCount; ++extension) {
-        if (extension->id == extensionId) {
-            extension->extension(operation, argc, argv);
-            return true;
-        }
+    if (auto extension = findInitialExtensionInTypeIdData(this, extensionId)) {
+        extension->extension(operation, argc, argv);
+        return true;
     }
     auto exIter = knownExtensions.find(extensionId);
     if (exIter == knownExtensions.cend())
@@ -23,7 +32,7 @@ bool N::P::TypeIdData::call(TypeId extensionId, quint8 operation, size_t argc, v
 
 bool N::P::TypeIdData::isExtensionKnown(TypeId extensionId) const
 {
-    return knownExtensions.find(extensionId) != knownExtensions.end();
+    return findInitialExtensionInTypeIdData(this, extensionId) || knownExtensions.find(extensionId) != knownExtensions.end();
 }
 
 QDebug operator<<(QDebug &dbg, N::TypeId id)
