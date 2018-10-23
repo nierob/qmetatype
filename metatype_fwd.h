@@ -18,7 +18,7 @@ namespace Extensions
         N::P::QtMetTypeCall call = nullptr;
         void *data = nullptr;
 
-        void operator()(quint8 operation, size_t argc, void** argv)
+        void operator()(quint8 operation, size_t argc, void** argv) const
         {
             call(operation, argc, argv, data);
         }
