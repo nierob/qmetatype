@@ -44,10 +44,10 @@ My focus:
 - extensions - so we are not fighting anymore about every bit and not every single type has to be registered
 - no Q_DECLARE_METATYPE - so user rarly would need to do anything (qt implictly would call qTypeId in most cases)
 
-The proposed solution
-=====================
+The proposed solution in short
+==============================
 
-We introduce a metetype call similar to QObject metacall. Type id is just an address to structure containging that function
+We introduce a metetype call similar to QObject metacall. Type id is just an address to a structure containging that function
 plus some data used for runtime created types. Access to any stored data or functionality would be achieved always through
 the call, just with different arguments. That creates small, but I believe acceptable, overhead of dispatching the calls.
 In return we get quite a lot of flexibility and BC safety for modifications. Simial concept is used in QObject metatcall.
@@ -114,8 +114,7 @@ and improve resulting code.
 Why not use just a function pointer as id?
 --------------------------------------------------------------------------------------
 Because we need to support types defined at runtime. That means that we need to attach
-some data to the call. The data may be known only at runtime so even template functions
+some data to the call. The data may be known only at runtime, so even template functions
 would not work, we could use std::function to support for example lambdas, but that one
 is not only quite big and could cause memory allocations at "registration" time, but
 also it was hard to define the data ownership, which was causing memory leaks.
-
