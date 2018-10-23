@@ -9,7 +9,7 @@ namespace N::Extensions
     {
         template<class QtTypeToIntrospect> constexpr std::string_view typeNameFromType_()
         {
-            constexpr size_t offset = sizeof("constexpr std::string_view N::Extensions::P::typeNameFromType() [with QtTypeToIntrospect = ") - 1;
+            constexpr size_t offset = sizeof("constexpr std::string_view N::Extensions::P::typeNameFromType() [with QtTypeToIntrospect = ");
             constexpr size_t tail = sizeof("; std::string_view = std::basic_string_view<char>]");
             constexpr size_t len = sizeof(__PRETTY_FUNCTION__);
             // TODO As for gcc this code is storing the full signature in the code because, we really would need to shorten the name or find another
