@@ -50,7 +50,7 @@ public:
         Allocation createExtensionBase(TypeId id)
         {
             Q_UNUSED(id);
-            return {RuntimeCall, this};
+            return {{{RuntimeCall, this}}};
         }
     };
 
