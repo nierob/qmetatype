@@ -13,10 +13,9 @@ namespace Extensions
 template<class Extension>
 class Ex : public ExtensionBase
 {
-public:
+    template<class T, class... Extensions> friend TypeId N::qTypeId();
+protected:
     typedef Ex<Extension> Base;
-
-    static inline TypeId typeId();
 
     template<class T> constexpr static void PreRegisterAction() {}
     template<class T> constexpr static void PostRegisterAction(TypeId id) { Q_UNUSED(id); }
@@ -36,6 +35,8 @@ public:
         extension.data = data;
         return std::move(extension);
     }
+public:
+    static inline TypeId typeId();
 };
 
 template<class T>
