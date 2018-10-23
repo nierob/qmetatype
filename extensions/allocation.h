@@ -3,9 +3,28 @@
 #include <memory>
 #include "extensions.h"
 
+/*!
+* Allocation extension
+*
+* It allows to create and destroy instances of the given type. Used everywhere where such operations is required,
+* well known places in Qt:
+* - MetaObject system
+* - QML in many places
+* - QVariant and through it's interface a lot of other usages comes into play (I guess sql, activeqt, dbus)
+* - Remote objects
+*/
 namespace N::Extensions
 {
 
+/*!
+* \brief The Allocation struct
+*
+* Implements base for QMetaType::create / construct / delete / destruct / size and maybe others.
+* Nothing spectacular here, it just worked out of the box. As opposite to the current solution
+* it automatically picks the right new operator and would have no problem with higher alignments.
+*
+* From API perspecitve it makes create function a bit safer by using unique_ptr with the right deleter.
+*/
 struct Allocation : public Ex<Allocation>
 {
     Q_STATIC_ASSERT(sizeof(void*) >= sizeof(size_t));
@@ -23,6 +42,7 @@ struct Allocation : public Ex<Allocation>
             }
             case Destroy: {
                 Q_ASSERT(argc == 1);
+                // TODO clang doesn't like that, but it should... anyway it is not a show stopper
                 ::operator delete(argv[0], typeData->size, typeData->align);
                 break;
             }
@@ -43,6 +63,14 @@ struct Allocation : public Ex<Allocation>
 
 public:
     enum Operations {Create, Destroy, Construct, Destruct, SizeOf, AlignOf};
+    /*!
+     * \brief The RuntimeData struct
+     * Helper for creating runtime types.
+     *
+     * TODO / UNIMPLEMENTED it needs to be extended with functions wrapping callback, otherwise it is useless.
+     * On the other hand complexity of the class would grow significantly therefore maybe it is just better
+     * to expose some way to override RuntimeCall.
+     */
     struct RuntimeData
     {
         std::size_t size;
