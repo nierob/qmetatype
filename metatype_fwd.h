@@ -54,8 +54,7 @@ struct TypeIdDataExtended: public TypeIdData
 
 }  // namespace P
 
-template<class T> TypeId qTypeId();
-template<class T, class Extension, class... Extensions> TypeId qTypeId();
+template<class T, class... Extensions> TypeId qTypeId();
 
 }  // namespace N
 

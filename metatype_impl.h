@@ -39,32 +39,26 @@ TypeId qTypeIdImpl(TypeId newId)
     return id;
 }
 
-template<class T, class Extension, class... Extensions>
+template<class T, class... Extensions>
 TypeId qTypeId()
 {
-    (Extension::template PreRegisterAction<T>(), ..., Extensions::template PreRegisterAction<T>());
+    if constexpr (!bool(sizeof...(Extensions))) {
+        // Register default stuff, Qt should define minimal useful set, DataStream is probably not in :-)
+        // Every usage of metatype can call qTypeId with own minimal set of extensions.
+        return qTypeId<T, N::Extensions::Allocation, N::Extensions::DataStream, N::Extensions::Name_dlsym, N::Extensions::Name_hash>();
+    }
+    (Extensions::template PreRegisterAction<T>(), ...);
     using ExtendedTypeIdData = N::P::TypeIdDataExtended<sizeof...(Extensions) + 1>;
     static ExtendedTypeIdData typeData{{sizeof...(Extensions) + 1, {}},
-                                       {{Extension::typeId(), Extension::template createExtension<T>()},
-                                        {Extensions::typeId(), Extensions::template createExtension<T>()}...}};
+                                       {{Extensions::typeId(), Extensions::template createExtension<T>()}...}};
     auto id = qTypeIdImpl<T>(&typeData);
     if (id != &typeData) {
         // We are adding extensions
         // TODO try to re-use typeData
-        id->registerExtensions(Extension::template createExtension<T>(), Extensions::template createExtension<T>()...);
+        id->registerExtensions(Extensions::template createExtension<T>()...);
     }
-    (Extension::template PostRegisterAction<T>(id), ..., Extensions::template PostRegisterAction<T>(id));
+    (Extensions::template PostRegisterAction<T>(id), ...);
     return id;
-}
-
-template<class T>
-TypeId qTypeId()
-{
-    // Register default stuff, Qt should define minimal useful set, DataStream
-    // is probably not in :-)
-    // Every usage of metatype can call qTypeId with own minimal set of
-    // extensions.
-    return qTypeId<T, Extensions::Allocation, Extensions::DataStream, Extensions::Name_dlsym, Extensions::Name_hash>();
 }
 
 template<class Extension>
