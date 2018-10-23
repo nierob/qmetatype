@@ -37,8 +37,8 @@ struct TypeIdData
 
     bool call(N::TypeId extensionId, quint8 operation, size_t argc, void **argv);
     bool isExtensionKnown(N::TypeId extensionId) const;
-    template<class Extension, class... Extensions>
-    inline void registerExtensions(Extension extension, Extensions... extensions);
+    template<class... Extensions>
+    inline void registerExtensions(Extensions... extensions);
     inline void registerExtension(N::TypeId extensionId, N::Extensions::ExtensionBase extension);
 };
 

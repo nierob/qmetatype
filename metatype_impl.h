@@ -19,12 +19,10 @@ template<class Extension> TypeId Extensions::Ex<Extension>::typeId()
 
 namespace P {
 
-template<class Extension, class... Extensions>
-void TypeIdData::registerExtensions(Extension extension, Extensions... extensions)
+template<class... Extensions>
+void TypeIdData::registerExtensions(Extensions... extensions)
 {
-    registerExtension(Extension::typeId(), extension);
-    if constexpr (bool(sizeof...(Extensions)))
-        registerExtensions(extensions...);
+    (registerExtension(Extensions::typeId(), extensions), ...);
 }
 
 void TypeIdData::registerExtension(TypeId extensionId, Extensions::ExtensionBase extension)
@@ -44,7 +42,7 @@ TypeId qTypeIdImpl(TypeId newId)
 template<class T, class Extension, class... Extensions>
 TypeId qTypeId()
 {
-    N::Extensions::P::PreRegisterAction<T, Extension, Extensions...>();
+    (Extension::template PreRegisterAction<T>(), ..., Extensions::template PreRegisterAction<T>());
     using ExtendedTypeIdData = N::P::TypeIdDataExtended<sizeof...(Extensions) + 1>;
     static ExtendedTypeIdData typeData{{sizeof...(Extensions) + 1, {}},
                                        {{Extension::typeId(), Extension::template createExtension<T>()},
@@ -55,7 +53,7 @@ TypeId qTypeId()
         // TODO try to re-use typeData
         id->registerExtensions(Extension::template createExtension<T>(), Extensions::template createExtension<T>()...);
     }
-    N::Extensions::P::PostRegisterAction<T, Extension, Extensions...>(id);
+    (Extension::template PostRegisterAction<T>(id), ..., Extensions::template PostRegisterAction<T>(id));
     return id;
 }
 
