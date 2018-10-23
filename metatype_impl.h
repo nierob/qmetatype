@@ -19,29 +19,6 @@ template<class Extension> TypeId Extensions::Ex<Extension>::typeId()
 
 namespace P {
 
-bool TypeIdData::call(TypeId extensionId, quint8 operation, size_t argc, void **argv)
-{
-    using DataExtension = TypeIdDataExtended<1>::ExtArray;
-    auto fakeTypedItData = static_cast<TypeIdDataExtended<1>*>(this); // Just to get the offset
-    const auto firstInitialExtension = fakeTypedItData->initialExtensions;
-    for (auto extension = firstInitialExtension; extension != firstInitialExtension + extCount; ++extension) {
-        if (extension->id == extensionId) {
-            extension->extension(operation, argc, argv);
-            return true;
-        }
-    }
-    auto exIter = knownExtensions.find(extensionId);
-    if (exIter == knownExtensions.cend())
-        return false;
-    exIter->second(operation, argc, argv);
-    return true;
-}
-
-bool TypeIdData::isExtensionKnown(TypeId extensionId) const
-{
-    return knownExtensions.find(extensionId) != knownExtensions.end();
-}
-
 template<class Extension, class... Extensions>
 void TypeIdData::registerExtensions(Extension extension, Extensions... extensions)
 {
