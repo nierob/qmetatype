@@ -67,7 +67,7 @@ TypeIdHandle<Deleter> initializeType(TypeData *data)
 {
     // TODO we probably need to add way to pass deleter to the TypeIdHandle
     static_assert(std::is_base_of_v<N::P::TypeIdData, TypeData>);
-    // TODO Add additional check:it has to be the first class because of the up cast in TypeIdHandle deleter
+    // TODO Add additional check: it has to be the first class because of the up cast in TypeIdHandle deleter
     auto registerExtension = [data](auto&... ex) {
         (data->registerExtensions(ex.createExtensionBase(data)), ...);
     };
