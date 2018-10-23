@@ -52,6 +52,26 @@ plus some data used for runtime created types. Access to any stored data or func
 the call, just with different arguments. That creates small, but I believe acceptable, overhead of dispatching the calls.
 In return we get quite a lot of flexibility and BC safety for modifications. Simial concept is used in QObject metatcall.
 
+Main concepts
+=============
+
+* Type information => Every data "attached" to the type. For example it can be it's size, name but also functionality, like
+for example information how to construct the type or how to stream it to qDebug.
+
+* Type id => Identifier that uniquely identifies the type. Every type can have at most one type id and two distinct types
+can not share the id.
+
+* Distinct type => Whatever C++ defines as distinct type. In particular typedef is not a separate type and pointer to a type
+is different from the type it is pointing to. Currently CV qualifiers also introduces new types, we may re-consider that in Qt6. // TODO
+
+* Metatype extension => Structure containing type information is pluggable, every "pluggin", that delivers some type information,
+can be called as metetype extension.
+
+* Metatype call => The main entry to the type information. Every type information can be retrived or used through the call.
+Users should not use it directly, but through user friendly API, most likely delivered by metatype extension.
+
+* Runtime type => Type that doesn't exsist at compilation tyme, for example most of QML types are created in runtime.
+
 
 Why not use just pure const data access, aka why to pay for an indirect function call?
 --------------------------------------------------------------------------------------
