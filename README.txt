@@ -16,6 +16,7 @@ A. Usability:
 - It is impossible for a user to extend collected data. That is example of QML in which
   a parallel structure has to be created. Similar problem is shared with data stream operators
   registration, and the code that tries to handle that.
+- It is not always obvious when qRegisterMetaType needs to be called.
 
 B. Code quality:
 - The current implementation is quite fragile from BC perspective, we store data that may not
