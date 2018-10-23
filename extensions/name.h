@@ -19,6 +19,12 @@ namespace N::Extensions
 
         template<class T> QString typeNameFromType()
         {
+            // TODO as an alternative we can use typeid(T).name(), but...
+            // - it requires RTTI
+            // - it requires +1 allocation, because it ignores CV qualifiers
+            // - it may require demangling, depending on the compiler
+            // ... but it doesn't depend on compiler extensions (ignoring demangling isssue).
+            // We could use it as a fallback if __PRETTY_FUNCTION__ is not usable.
             std::string_view str = typeNameFromType_<T>();
             return QString::fromLocal8Bit(str.data(), str.length());
         }
