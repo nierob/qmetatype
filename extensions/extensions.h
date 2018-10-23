@@ -11,16 +11,6 @@ namespace N {
 namespace Extensions
 {
 namespace P {
-template<class QtTypeToIntrospect> constexpr std::string_view typeNameFromType()
-{
-    constexpr size_t offset = sizeof("constexpr std::string_view N::Extensions::P::typeNameFromType() [with QtTypeToIntrospect = ") - 1;
-    constexpr size_t tail = sizeof("; std::string_view = std::basic_string_view<char>]");
-    // As for gcc this code is storing the full signature in the code because, we really would need to shorten the name or find another
-    // way to cut the size, maybe a trick with const char [] could help?
-    constexpr size_t len = sizeof(__PRETTY_FUNCTION__);
-    return std::string_view{__PRETTY_FUNCTION__ + offset, len - offset - tail};
-}
-
 template<class T, class Extension, class... Extensions>
 void PreRegisterAction()
 {
