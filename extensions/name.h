@@ -3,6 +3,47 @@
 #include <dlfcn.h>
 #include "extensions.h"
 
+/*!
+ * Name extension
+ *
+ * It captures the type name and offers some operations around it. Main known uses cases in Qt:
+ *  - error formating (qDebug and friends)
+ *  - mapping by name to external types, like for example in sql, dbus
+ *  - datastream protocol uses type names
+ *  - old singal and slot mechanizm dispatch arguments through type names
+ *  - odd stuff like QVariant being too smart about implict conversions for enumerations
+ *    and other types, that one should go away with Qt6
+ *  - tooling/code generators, type ids changes on every run, so generators needs to create
+ *    code that uses type names
+ *  - pointer detections (names that ends with "*"), that use case is invalid even if used
+ *    in many places. We would need a flag instead
+ *  - accessing type id for type name, QML while reading an input file, needs to convert
+ *    type name to id so it can later on construct it
+ *
+ * This file shows some play around the problem. It doesn't implement the final solution, but it
+ * explores a few possibilities. The main problem is that we would like to avoid storing global set
+ * of name -> type id hash. It is tricky because of QMetaType::fromName function that can __not__
+ * be remove nor deprecated.
+ *
+ * Explored ideas:
+ *  - using dlsym to mmap own application and calling the right function
+ *  - using typeid
+ *  - abusing __PRETTY_FUNCTION__
+ *  - storing all data in a custom section/segment that can be later scanned for strings and ids
+ *    (I have failed to implement it, it may work for plugins)
+ *
+ * Conclusion:
+ * ===========
+ * There is no clear winner. I think the solution is to use a mixture of typeid and __PRETTY_FUNCTION__ ideas.
+ * If we can get the 2nd to be used as constexpr then we should use it, on platforms that it is not possible in a sane fashion,
+ * we should fallback to typeid.
+ *
+ * There is no way around for the global hash, as we offer aliases, that means that two different type names
+ * can map to the same type id.
+ *
+ * Name_hash is probably the right base for Qt6 implementation
+ */
+
 namespace N::Extensions
 {
     namespace P
@@ -22,6 +63,7 @@ namespace N::Extensions
             // TODO as an alternative we can use typeid(T).name(), but...
             // - it requires RTTI
             // - it requires +1 allocation, because it ignores CV qualifiers
+            // - it may return different names for the same type in some cases (results are not stable across the calls)
             // - it may require demangling, depending on the compiler
             // ... but it doesn't depend on compiler extensions (ignoring demangling isssue).
             // We could use it as a fallback if __PRETTY_FUNCTION__ is not usable.
@@ -30,6 +72,25 @@ namespace N::Extensions
         }
     }
 
+/*!
+* \brief The Name_dlsym struct
+*
+* Experimantal class providing a type name handling.
+* Mapping type id => name is based on typeNameFromType<T>()
+* Mapping name => type id is based on dlsym and scanning own binary in hope for findind the rigth callback
+*
+* Summary:
+* It is scary, but mostly works.
+*   Pros:
+*     - If a type was not used yet, it implicitly calls qTypeInfo
+*     - It uses exsiting low level functionality instead of creating own solution from scratch
+*   Cons:
+*     - It still needs some global hash for aliases.
+*     - It will not work with totally stripped binaries
+*     - It require linking with rdynamic
+*     - It is hard to find mangling function (demangling is there, but we would need to do the opposite)
+*     - May not work with typedefs
+*/
 struct Name_dlsym: public Ex<Name_dlsym>
 {
     enum Operations {GetName, RegisterAlias};
@@ -59,13 +120,8 @@ struct Name_dlsym: public Ex<Name_dlsym>
 
     static TypeId fromName(const QString &name)
     {
-        // TODO this algorithm will work only with -rdynamic and if binaries
-        // are not totally stripped. In addition it is platform specific. We may
-        // need a generic fallback based on a global hash as in Qt5 or we
-        // can store the type name with a special markes just after typeId, then
-        // scanning .data section would probably discover it, but we would need
-        // to ensure that all internal statics are actually initialized (TODO how?).
-
+        // This algorithm will work only with -rdynamic and only if binaries
+        // are not totally stripped. In addition it is platform specific.
         // We prefer the first value but any of _ZN1N13qTypeId would do,
         // so maybe we should just scan all symbols (TODO how exactly?)
         // TODO add more templates or figure out a better way of finding the call.
@@ -91,7 +147,22 @@ struct Name_dlsym: public Ex<Name_dlsym>
     }
 };
 
-
+/*!
+* \brief The Name_hash struct
+*
+* Experimantal class providing a type name handling.
+* Mapping type id => name is based on typeNameFromType<T>()
+* Mapping name => type id is based on global hash (similar to Qt5)
+*
+* Summary:
+* It doesn't offer anything more over what we have in Qt5
+*   Pros:
+*    - It is simple
+*    - It supports aliases out of the box
+*   Cons:
+*    - It requires lock-free hash or mutex
+*    - It likely duplicates the data, if based on QStrings
+*/
 struct Name_hash: public Ex<Name_hash>
 {
     enum Operations {GetName, RegisterAlias};
