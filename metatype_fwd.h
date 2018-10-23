@@ -34,6 +34,7 @@ struct TypeIdData
     // the point here is that we need a low cost mapping
     // TODO Split API into public and private as it seems tht TypeIdData needs to be public
     // otherwise we can not construct type at runtime
+    const size_t extCount = 0;
     std::unordered_map<N::TypeId, N::Extensions::ExtensionBase> knownExtensions;
 
     inline bool call(N::TypeId extensionId, quint8 operation, size_t argc, void **argv);
@@ -41,7 +42,16 @@ struct TypeIdData
     template<class Extension, class... Extensions>
     inline void registerExtensions(Extension extension, Extensions... extensions);
     inline void registerExtension(N::TypeId extensionId, N::Extensions::ExtensionBase extension);
+};
 
+template<size_t InitialExtensionsCount>
+struct TypeIdDataExtended: public TypeIdData
+{
+    struct ExtArray
+    {
+        TypeId id;
+        N::Extensions::ExtensionBase extension;
+    } initialExtensions[InitialExtensionsCount];
 };
 
 }  // namespace P
