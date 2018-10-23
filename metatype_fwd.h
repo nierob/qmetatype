@@ -30,8 +30,6 @@ namespace P {
 struct TypeIdData
 {
     // TODO make it thread safe
-    // TODO it can be partially filled on compile time, maybe the map is not the right struct
-    // the point here is that we need a low cost mapping
     // TODO Split API into public and private as it seems tht TypeIdData needs to be public
     // otherwise we can not construct type at runtime
     const size_t extCount = 0;
