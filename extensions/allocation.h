@@ -133,7 +133,6 @@ public:
 
     static std::unique_ptr<void, Deleter> create(TypeId id, const void *copy = nullptr)
     {
-        // TODO consider std::unique_ptr with destroy as deleter as a return type
         void *argv[] = {nullptr, const_cast<void*>(copy)};
         Base::Call(id, Create, copy ? 2 : 1, argv);
         return std::unique_ptr<void, Deleter>{argv[0], Deleter{id}};
