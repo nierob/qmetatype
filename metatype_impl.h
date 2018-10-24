@@ -50,9 +50,6 @@ namespace N {
 
 template<class Extension> TypeId Extensions::Ex<Extension>::typeId()
 {
-    // Used for unique address range and extensions handling should allows X operations
-    // TODO check operation count and eforce it
-    // TODO double check if there is no better option then alignment
     return qTypeId<Extension, Name_hash>();
 }
 
