@@ -65,3 +65,10 @@ template<> N::TypeId N::qTypeId<N::Extensions::Name_hash, N::Extensions::Name_ha
     id->registerExtension(id, d.data.createExtensionBase(id));
     return id;
 }
+
+void N::Extensions::ExtensionBase::warnAboutFailedCall(TypeId extensionId, TypeId id)
+{
+    auto extensionName = Name_dlsym::name(extensionId);
+    qWarning() << QLatin1String("WARN Requested metatype extension ") + extensionName + QLatin1String(" is not registed for this type:")
+                  << id;
+}

@@ -61,6 +61,7 @@ namespace Extensions
         {
             call(operation, argc, argv, data);
         }
+        static void warnAboutFailedCall(TypeId extensionId, TypeId id);
     };
 }
 

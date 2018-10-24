@@ -101,10 +101,8 @@ template<class Extension>
 inline void Extensions::Ex<Extension>::Call(TypeId id, quint8 operation, size_t argc, void **argv)
 {
     if (!id->call(typeId(), operation, argc, argv)) {
-        auto extensionName = Name_dlsym::name(qTypeId<Extension, Name_dlsym>());
         // TODO Think when we need the warning, sometimes we want just to probe if it is possible to do stuff
-        qWarning() << QLatin1String("WARN Requested metatype extension ") + extensionName + QLatin1String(" is not registed for this type:")
-                      << id;
+        warnAboutFailedCall(qTypeId<Extension, Name_dlsym>(), id);
     }
 }
 
