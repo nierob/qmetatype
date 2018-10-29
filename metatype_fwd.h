@@ -48,10 +48,21 @@ typedef void (*QtMetTypeCall)(quint8 operation, size_t argc, void **argv, void *
 struct TypeIdData;
 }  // namespace P
 
+/// Id of a type
 using TypeId = P::TypeIdData*;
 
 namespace Extensions
 {
+    /*!
+     * \brief The ExtensionBase struct is a base of all extensions.
+     *
+     * It contains the metatype call and potentially data pointers.
+     *
+     * It is not mutable, once created the pointers should not be changed (at least
+     * with the current state of the code).
+     *
+     * All extensions needs to be the same size as ExtensionBase.
+     */
     struct ExtensionBase
     {
         N::P::QtMetTypeCall call = nullptr;
@@ -59,6 +70,8 @@ namespace Extensions
 
         void operator()(quint8 operation, size_t argc, void** argv) const
         {
+            // TODO maybe reduce arguments count to gain some performance. We could
+            // potentially merge operation and argc with some minor bit-wise operations.
             call(operation, argc, argv, data);
         }
     protected:
@@ -68,14 +81,28 @@ namespace Extensions
 
 namespace P {
 
+/*!
+ * \brief The TypeIdData struct keeps all extensions associated with the type.
+ *
+ * The type id is just a pointer to this class, therefore two separate instances
+ * always describe two different types.
+ *
+ * The class usually is instantiated through TypeIdDataExtended, which contains
+ * a bit more space for initialization time given extensions.
+ *
+ * TODO Split API into public and private as it seems that TypeIdData needs to be public
+ * otherwise we can not construct type at runtime
+ */
 struct TypeIdData
 {
-    // TODO make it thread safe
-    // TODO Split API into public and private as it seems tht TypeIdData needs to be public
-    // otherwise we can not construct type at runtime
+    // Set by TypeIdDataExtended, allows to use data stored beyond this class
     const size_t extCount = 0;
+
+    // Keeps all runtime given extensions
+    // TODO make it thread safe, we could make them simply a linked list
     std::unordered_map<N::TypeId, N::Extensions::ExtensionBase> knownExtensions;
 
+    // Make the extension call
     bool call(N::TypeId extensionId, quint8 operation, size_t argc, void **argv);
     bool isExtensionKnown(N::TypeId extensionId) const;
     template<class... Extensions>

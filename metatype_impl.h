@@ -68,6 +68,14 @@ void TypeIdData::registerExtension(TypeId extensionId, Extensions::ExtensionBase
 
 }  // namespace P
 
+
+/*!
+ * Trick to have always at most one type id per type.
+ *
+ * When we call the function the first time the proposed newId would be
+ * set as the one used across the application. On the second call the newId would be ignored. It
+ * is up to called to figure-out, which case it was.
+ */
 template<class T>
 TypeId qTypeIdImpl(TypeId newId)
 {
@@ -75,6 +83,24 @@ TypeId qTypeIdImpl(TypeId newId)
     return id;
 }
 
+/*!
+ * The function to get the type id, more or less equivalent of qMetaTypeId.
+ *
+ * The function creates or gets id for a given type. It also can register Extensions
+ * if there are new given.
+ *
+ * If called without Extensions, then a default set of Extensions is used.
+ *
+ * TODO The id is not cached as in qRegisterMetaType, that could be a problem, but not
+ * necessarily as we do recommend to call qRegisterMetaType only once. So it should not
+ * be in a hot code path and the cost is minor.
+ * TODO Maybe a bit expensive if many qTypeId<T> with different extensions are used, because
+ * static typeData possibly would be initialized but unused.
+ * TODO We may consider change qTypeIdImpl to hold an atomic TypeId and check for nullptr
+ * to see if a type already has an id or not, something to measure, as atomic access would
+ * likely be more expensive then static access.
+ * TODO think about lifetime of Extensions in context of plugins
+ */
 template<class T, class... Extensions>
 TypeId qTypeId()
 {
@@ -90,7 +116,7 @@ TypeId qTypeId()
     auto id = qTypeIdImpl<T>(&typeData);
     if (id != &typeData) {
         // We are adding extensions
-        // TODO try to re-use typeData
+        // TODO try to re-use typeData, maybe we should just link them?
         id->registerExtensions(Extensions::template createExtension<T>()...);
     }
     (Extensions::template PostRegisterAction<T>(id), ...);
