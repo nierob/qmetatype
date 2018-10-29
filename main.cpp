@@ -40,7 +40,15 @@
 #include <QtCore>
 #include "metatype.h"
 
-/**
+/*!
+* Examples.
+*
+* This files "proves" that the code works more or less as expected.
+*
+* We call here extensions directly but we could wrap the calls inside QMetaType class.
+*/
+
+/*!
 * Example code.
 *
 * Used for creating custom types dynamically. We want give a user power of controlling the life time
@@ -66,6 +74,7 @@ int main(int argc, char** argv)
     Q_UNUSED(argc);
     Q_UNUSED(argv);
 
+    // Check basic extensions on a primitive type
     qDebug() << "----------------Int--------------------------";
     {
         auto intId = N::qTypeId<int>();
@@ -84,6 +93,7 @@ int main(int argc, char** argv)
         N::Extensions::QDebugStream::qDebugStream(intId, qDebug() << "   Testing qdebug stream output after registration of QDebug extension value:", i);
     }
 
+    // Check basic extensions on a complex type
     qDebug() << "----------------QString--------------------------";
     {
         auto qstringId = N::qTypeId<QString>();
@@ -96,6 +106,7 @@ int main(int argc, char** argv)
         qDebug() << "create(QString):" << *string;
     }
 
+    // [BROKEN] Plays with pre-registration. With dlsym we can call qTypeId lazily
     qDebug() << "----------------Unsigned int--------------------------";
     {
         auto preRegistrationIntId = N::Extensions::Name_dlsym::fromName(QStringLiteral("unsigned"));
@@ -105,6 +116,7 @@ int main(int argc, char** argv)
         qDebug() << "Unsigned int by default is known as:" << N::Extensions::Name_dlsym::name(uintId);
     }
 
+    // Check name extension on a type
     qDebug() << "----------------Char--------------------------";
     {
         auto charId = N::qTypeId<char, N::Extensions::Name_hash>();
@@ -114,6 +126,7 @@ int main(int argc, char** argv)
         qDebug() << "Char by default is known as:" << N::Extensions::Name_hash::name(charId);
     }
 
+    // Create a custom type during runtime
     qDebug() << "----------------Runtime--------------------------";
     {
         auto runtimeAdditionalData = new RuntimeData{{}, { N::Extensions::Name_hash::RuntimeData{{"RuntimeTypeName"}},
@@ -124,6 +137,7 @@ int main(int argc, char** argv)
         qDebug() << "Custom type size(12) and align(4) is:" << N::Extensions::Allocation::sizeOf(runtimeTypeId) << N::Extensions::Allocation::alignOf(runtimeTypeId);
     }
 
+    // Create a custom type during runtime
     qDebug() << "----------------Runtime with stack allocated definiton--------------------------";
     {
         RuntimeData runtimeAdditionalData{{}, { N::Extensions::Name_hash::RuntimeData{{"RuntimeTypeName"}},
@@ -134,6 +148,7 @@ int main(int argc, char** argv)
         qDebug() << "Custom type size(2) and align(1) is:" << N::Extensions::Allocation::sizeOf(runtimeTypeId) << N::Extensions::Allocation::alignOf(runtimeTypeId);
     }
 
+    // Metatype extensions may be also known to the metatype system
     qDebug() << "----------------Extensions are also registered--------------------------";
     {
         auto nameId = N::Extensions::Name_hash::fromName("N::Extensions::Name_hash");
