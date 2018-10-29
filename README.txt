@@ -55,7 +55,7 @@ In return we get quite a lot of flexibility and BC safety for modifications. Sim
 Main concepts
 =============
 
-* Type information => Every data "attached" to the type. For example it can be it's size, name but also functionality, like
+* Type information => Every static data "attached" to the type. For example it can be it's size, name but also functionality, like
 for example information how to construct the type or how to stream it to qDebug.
 
 * Type id => Identifier that uniquely identifies the type. Every type can have at most one type id and two distinct types
