@@ -57,7 +57,9 @@ class Ex : public ExtensionBase
 protected:
     typedef Ex<Extension> Base;
 
+    // Can be overridden in Extension. Can be called multiple times per T, needs to be thread safe
     template<class T> constexpr static void PreRegisterAction() {}
+    // Can be overridden in Extension. Can be called multiple times per T, needs to be thread safe
     template<class T> constexpr static void PostRegisterAction(TypeId id) { Q_UNUSED(id); }
 
     static void Call(TypeId id, quint8 operation, size_t argc, void **argv);
