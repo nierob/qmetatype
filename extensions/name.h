@@ -85,11 +85,11 @@
 
 namespace N::Extensions
 {
-    namespace P
+    namespace QtPrivate
     {
         template<class QtTypeToIntrospect> constexpr std::string_view typeNameFromType_()
         {
-            constexpr size_t offset = sizeof("constexpr std::string_view N::Extensions::P::typeNameFromType() [with QtTypeToIntrospect = ");
+            constexpr size_t offset = sizeof("constexpr std::string_view N::Extensions::QtPrivate::typeNameFromType() [with QtTypeToIntrospect = ");
             constexpr size_t tail = sizeof("; std::string_view = std::basic_string_view<char>]");
             constexpr size_t len = sizeof(__PRETTY_FUNCTION__);
             // TODO As for gcc this code is storing the full signature in the code because, we really would need to shorten the name or find another
@@ -143,7 +143,7 @@ struct Name_dlsym: public Ex<Name_dlsym>
             case GetName: {
                 Q_ASSERT(argc == 1);
                 void *&result = argv[0];
-                *static_cast<QString*>(result) = P::typeNameFromType<T>();
+                *static_cast<QString*>(result) = QtPrivate::typeNameFromType<T>();
                 break;
             }
         }
@@ -248,7 +248,7 @@ struct Name_hash: public Ex<Name_hash>
             case GetName: {
                 Q_ASSERT(argc == 1);
                 void *&result = argv[0];
-                *static_cast<QString*>(result) = P::typeNameFromType<T>();
+                *static_cast<QString*>(result) = QtPrivate::typeNameFromType<T>();
                 break;
             }
         }
@@ -280,7 +280,7 @@ struct Name_hash: public Ex<Name_hash>
     static void PostRegisterAction(TypeId id)
     {
         if (firstPostCall<T>()) {
-            nameToId[P::typeNameFromType<T>()] = id;
+            nameToId[QtPrivate::typeNameFromType<T>()] = id;
             lock.unlock();
         }
     }

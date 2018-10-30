@@ -54,7 +54,7 @@
 * Used for creating custom types dynamically. We want give a user power of controlling the life time
 * of such data, as it allows to optimize allocations, maybe support plugins.
 *
-* TODO currently it inherits N::P::TypeIdData, which is private. We may consider making it public or
+* TODO currently it inherits N::QtPrivate::TypeIdData, which is private. We may consider making it public or
 * change the interface.
 *
 * TODO usage of tuple just a shortcut, for which I do not have workaround. In general we want to
@@ -64,7 +64,7 @@
 * need to just call a function with all the init data for extensions data and would get back customly allocated
 * type. In reality I guess we need to split it into two steps, allocation and initialization.
 */
-struct RuntimeData: N::P::TypeIdData
+struct RuntimeData: N::QtPrivate::TypeIdData
 {
     std::tuple<N::Extensions::Name_hash::RuntimeData, N::Extensions::Allocation::RuntimeData> extensions;
 };

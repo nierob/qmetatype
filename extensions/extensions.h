@@ -84,7 +84,7 @@ public:
 template<class T>
 struct DefaultTypeIdHandleDeleter: public std::default_delete<T>
 {
-    void operator()(N::P::TypeIdData* ptr) const
+    void operator()(N::QtPrivate::TypeIdData* ptr) const
     {
         std::default_delete<T>::operator()(static_cast<T*>(ptr));
     }
@@ -92,14 +92,14 @@ struct DefaultTypeIdHandleDeleter: public std::default_delete<T>
 
 struct EmptyTypeIdHandleDeleter
 {
-    void operator()(N::P::TypeIdData*) const {}
+    void operator()(N::QtPrivate::TypeIdData*) const {}
 };
 
 
 template<class Deleter>
-struct TypeIdHandle: private std::unique_ptr<N::P::TypeIdData, Deleter>
+struct TypeIdHandle: private std::unique_ptr<N::QtPrivate::TypeIdData, Deleter>
 {
-    using Base = std::unique_ptr<N::P::TypeIdData, Deleter>;
+    using Base = std::unique_ptr<N::QtPrivate::TypeIdData, Deleter>;
     TypeIdHandle(TypeId id, Deleter deleter = Deleter()) : Base(id, deleter) {}
     TypeId id() { return Base::get(); }
 };
@@ -108,7 +108,7 @@ template<class TypeData, class Deleter=DefaultTypeIdHandleDeleter<TypeData>>
 TypeIdHandle<Deleter> initializeType(TypeData *data)
 {
     // TODO we probably need to add way to pass deleter to the TypeIdHandle
-    static_assert(std::is_base_of_v<N::P::TypeIdData, TypeData>);
+    static_assert(std::is_base_of_v<N::QtPrivate::TypeIdData, TypeData>);
     auto registerExtension = [data](auto&... ex) {
         (data->registerExtensions(ex.createExtensionBase(data)), ...);
     };

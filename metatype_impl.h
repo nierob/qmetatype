@@ -53,7 +53,7 @@ template<class Extension> TypeId Extensions::Ex<Extension>::typeId()
     return qTypeId<Extension, Name_hash>();
 }
 
-namespace P {
+namespace QtPrivate {
 
 template<class... Extensions>
 void TypeIdData::registerExtensions(Extensions... extensions)
@@ -66,7 +66,7 @@ void TypeIdData::registerExtension(TypeId extensionId, Extensions::ExtensionBase
     knownExtensions.try_emplace(extensionId, extension);
 }
 
-}  // namespace P
+}  // namespace QtPrivate
 
 
 /*!
@@ -110,7 +110,7 @@ TypeId qTypeId()
         return qTypeId<T, N::Extensions::Allocation, N::Extensions::DataStream, N::Extensions::Name_dlsym, N::Extensions::Name_hash>();
     }
     (Extensions::template PreRegisterAction<T>(), ...);
-    using ExtendedTypeIdData = N::P::TypeIdDataExtended<sizeof...(Extensions) + 1>;
+    using ExtendedTypeIdData = N::QtPrivate::TypeIdDataExtended<sizeof...(Extensions) + 1>;
     static ExtendedTypeIdData typeData{{sizeof...(Extensions) + 1, {}},
                                        {{Extensions::typeId(), Extensions::template createExtension<T>()}...}};
     auto id = qTypeIdImpl<T>(&typeData);

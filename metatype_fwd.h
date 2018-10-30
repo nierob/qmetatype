@@ -43,13 +43,13 @@
 #include <unordered_map>
 
 namespace N {
-namespace P {
+namespace QtPrivate {
 typedef void (*QtMetTypeCall)(quint8 operation, size_t argc, void **argv, void *data);
 struct TypeIdData;
-}  // namespace P
+}  // namespace QtPrivate
 
 /// Id of a type
-using TypeId = P::TypeIdData*;
+using TypeId = QtPrivate::TypeIdData*;
 
 namespace Extensions
 {
@@ -65,7 +65,7 @@ namespace Extensions
      */
     struct ExtensionBase
     {
-        N::P::QtMetTypeCall call = nullptr;
+        N::QtPrivate::QtMetTypeCall call = nullptr;
         void *data = nullptr;
 
         void operator()(quint8 operation, size_t argc, void** argv) const
@@ -79,7 +79,7 @@ namespace Extensions
     };
 }
 
-namespace P {
+namespace QtPrivate {
 
 /*!
  * \brief The TypeIdData struct keeps all extensions associated with the type.
@@ -120,7 +120,7 @@ struct TypeIdDataExtended: public TypeIdData
     } initialExtensions[InitialExtensionsCount];
 };
 
-}  // namespace P
+}  // namespace QtPrivate
 
 template<class T, class... Extensions> TypeId qTypeId();
 

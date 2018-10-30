@@ -43,10 +43,10 @@
 #include "extensions/name.h"
 
 namespace {
-using DataExtension = N::P::TypeIdDataExtended<1>::ExtArray;
-static const DataExtension *findInitialExtensionInTypeIdData(const N::P::TypeIdData *data, N::TypeId extensionId)
+using DataExtension = N::QtPrivate::TypeIdDataExtended<1>::ExtArray;
+static const DataExtension *findInitialExtensionInTypeIdData(const N::QtPrivate::TypeIdData *data, N::TypeId extensionId)
 {
-    auto fakeTypedItData = static_cast<const N::P::TypeIdDataExtended<1>*>(data); // Just to get the offset
+    auto fakeTypedItData = static_cast<const N::QtPrivate::TypeIdDataExtended<1>*>(data); // Just to get the offset
     auto firstInitialExtension = fakeTypedItData->initialExtensions;
     for (auto extension = firstInitialExtension; extension != firstInitialExtension + data->extCount; ++extension) {
         if (extension->id == extensionId)
@@ -56,7 +56,7 @@ static const DataExtension *findInitialExtensionInTypeIdData(const N::P::TypeIdD
 }
 } // namespace
 
-bool N::P::TypeIdData::call(TypeId extensionId, quint8 operation, size_t argc, void **argv)
+bool N::QtPrivate::TypeIdData::call(TypeId extensionId, quint8 operation, size_t argc, void **argv)
 {
     if (auto extension = findInitialExtensionInTypeIdData(this, extensionId)) {
         extension->extension(operation, argc, argv);
@@ -69,7 +69,7 @@ bool N::P::TypeIdData::call(TypeId extensionId, quint8 operation, size_t argc, v
     return true;
 }
 
-bool N::P::TypeIdData::isExtensionKnown(TypeId extensionId) const
+bool N::QtPrivate::TypeIdData::isExtensionKnown(TypeId extensionId) const
 {
     return findInitialExtensionInTypeIdData(this, extensionId) || knownExtensions.find(extensionId) != knownExtensions.end();
 }

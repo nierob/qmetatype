@@ -58,7 +58,7 @@ template<> N::TypeId N::qTypeId<N::Extensions::Name_hash, N::Extensions::Name_ha
     // To break infinite recursion we pretend here that it is a runtime created type (even if created through
     // static initialization).
     static struct {
-        P::TypeIdData typeData;
+        QtPrivate::TypeIdData typeData;
 #ifndef Q_CC_MSVC
         N::Extensions::Name_hash::RuntimeData data{QStringLiteral("N::Extensions::Name_hash")};
 #else // msvc

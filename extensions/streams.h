@@ -41,7 +41,7 @@
 #include "extensions.h"
 
 namespace N::Extensions {
-namespace P {
+namespace QtPrivate {
 template<class T, class Stream>
 class HasLoadStreamOperator
 {
@@ -82,9 +82,9 @@ struct HasStreamOperator
     static constexpr bool Value = LoadValue && SaveValue;
 };
 
-} // namespace P
+} // namespace QtPrivate
 
-template<class T, bool = P::HasStreamOperator<T, QDataStream>::Value>
+template<class T, bool = QtPrivate::HasStreamOperator<T, QDataStream>::Value>
 class DataStreamImpl
 {
 public:
@@ -134,7 +134,7 @@ inline void DataStreamImpl<T, hasStreamOperator>::Call(quint8 operation, size_t 
     }
 }
 
-template<class T, bool = P::HasSaveStreamOperator<T, QDebug>::Value>
+template<class T, bool = QtPrivate::HasSaveStreamOperator<T, QDebug>::Value>
 class QDebugStreamImpl
 {
 public:
