@@ -53,6 +53,11 @@ using TypeId = QtPrivate::TypeIdData*;
 
 namespace Extensions
 {
+    enum class OperationMode
+    {
+        Query = 0,
+        AssertTrue = 1
+    };
     /*!
      * \brief The ExtensionBase struct is a base of all extensions.
      *
@@ -76,7 +81,7 @@ namespace Extensions
         }
     protected:
         static void warnAboutFailedCall(TypeId extensionId, TypeId id);
-        template<class T> constexpr static bool WorksForType() { return true; }
+        template<class, OperationMode = OperationMode::Query> constexpr static bool WorksForType() { return true; }
         // Can be overridden in Extension. Can be called multiple times per T, needs to be thread safe
         template<class T> constexpr static void PreRegisterAction() {}
         // Can be overridden in Extension. Can be called multiple times per T, needs to be thread safe

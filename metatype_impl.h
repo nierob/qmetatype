@@ -137,7 +137,7 @@ TypeId qTypeId()
         auto extensionsCount = std::make_index_sequence<std::tuple_size_v<UsableExtensionsTuple>>();
         return N::QtPrivate::qTypeIdDefault<T, UsableExtensionsTuple>(extensionsCount);
     }
-    static_assert((Extensions::template WorksForType<T>() && ...), "One of extensions is not valid for this type");
+    static_assert((Extensions::template WorksForType<T, N::Extensions::OperationMode::AssertTrue>() && ...), "One of extensions is not valid for this type");
     (Extensions::template PreRegisterAction<T>(), ...);
     using ExtendedTypeIdData = N::QtPrivate::TypeIdDataExtended<sizeof...(Extensions) + 1>;
     static ExtendedTypeIdData typeData{{sizeof...(Extensions) + 1, {}},

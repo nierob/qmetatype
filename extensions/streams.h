@@ -87,7 +87,12 @@ struct HasStreamOperator
 struct DataStream: public Ex<DataStream>
 {
     enum Operations {SaveData, LoadData};
-    template<class T> constexpr static bool WorksForType() { return QtPrivate::HasStreamOperator<T, QDataStream>::Value; }
+    template<class T, OperationMode Mode = OperationMode::Query> constexpr static bool WorksForType()
+    {
+        constexpr auto hasStreamOp = QtPrivate::HasStreamOperator<T, QDataStream>::Value;
+        static_assert(Mode != OperationMode::AssertTrue || hasStreamOp, "Type has no QDataStream stream opetarors");
+        return hasStreamOp;
+    }
     template<class T>
     static void Call(quint8 operation, size_t argc, void **argv, void *data = nullptr)
     {
@@ -114,7 +119,12 @@ struct DataStream: public Ex<DataStream>
 struct QDebugStream: public Ex<QDebugStream>
 {
     enum Operations {SaveData};
-    template<class T> constexpr static bool WorksForType() { return QtPrivate::HasSaveStreamOperator<T, QDebug>::Value; }
+    template<class T, OperationMode Mode = OperationMode::Query> constexpr static bool WorksForType()
+    {
+        constexpr auto hasStreamOp = QtPrivate::HasSaveStreamOperator<T, QDebug>::Value;
+        static_assert(Mode != OperationMode::AssertTrue || hasStreamOp, "Type has no QDataStream stream opetarors");
+        return hasStreamOp;
+    }
     template<class T>
     static void Call(quint8 operation, size_t argc, void **argv, void *data = nullptr)
     {

@@ -40,6 +40,8 @@
 #pragma once
 #include <new>
 #include <memory>
+#include <type_traits>
+
 #include "extensions.h"
 
 /*!
@@ -68,7 +70,18 @@ struct Allocation : public Ex<Allocation>
 {
     Q_STATIC_ASSERT(sizeof(void*) >= sizeof(size_t));
 
-    template<class T> constexpr static bool WorksForType() { return !std::is_same_v<T, void>; }
+    template<class T, OperationMode Mode = OperationMode::Query> constexpr static bool WorksForType()
+    {
+        constexpr auto isNotVoid= !std::is_same_v<T, void>;
+        static_assert(Mode != OperationMode::AssertTrue || isNotVoid, "Void can not be used with Allocation extension.");
+        constexpr auto isDefaultConstructible = std::is_default_constructible_v<T>;
+        static_assert(Mode != OperationMode::AssertTrue || isDefaultConstructible, "Type needs to be default constructible");
+        constexpr auto isCopyConstructible = std::is_copy_constructible_v<T>;
+        static_assert(Mode != OperationMode::AssertTrue || isCopyConstructible, "Type needs to be copy constructible");
+        constexpr auto isDestructible = std::is_destructible_v<T>;
+        static_assert(Mode != OperationMode::AssertTrue || isDestructible, "Type needs to be destructible");
+        return isDefaultConstructible && isCopyConstructible && isDestructible && isNotVoid;
+    }
 
     static void RuntimeCall(quint8 operation, size_t argc, void **argv, void *data)
     {
