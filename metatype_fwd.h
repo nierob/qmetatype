@@ -76,6 +76,11 @@ namespace Extensions
         }
     protected:
         static void warnAboutFailedCall(TypeId extensionId, TypeId id);
+        template<class T> constexpr static bool WorksForType() { return true; }
+        // Can be overridden in Extension. Can be called multiple times per T, needs to be thread safe
+        template<class T> constexpr static void PreRegisterAction() {}
+        // Can be overridden in Extension. Can be called multiple times per T, needs to be thread safe
+        template<class T> constexpr static void PostRegisterAction(TypeId id) { Q_UNUSED(id); }
     };
 }
 
