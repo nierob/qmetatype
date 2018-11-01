@@ -59,7 +59,11 @@ template<> N::TypeId N::qTypeId<N::Extensions::Name_hash, N::Extensions::Name_ha
     // static initialization).
     static struct {
         P::TypeIdData typeData;
+#ifndef Q_CC_MSVC
         N::Extensions::Name_hash::RuntimeData data{QStringLiteral("N::Extensions::Name_hash")};
+#else // msvc
+        N::Extensions::Name_hash::RuntimeData data{QString("N::Extensions::Name_hash")};
+#endif
     } d;
     auto id = &d.typeData;
     id->registerExtension(id, d.data.createExtensionBase(id));
