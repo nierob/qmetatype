@@ -67,9 +67,6 @@ void TypeIdData::registerExtension(TypeId extensionId, Extensions::ExtensionBase
     knownExtensions.try_emplace(extensionId, extension);
 }
 
-}  // namespace QtPrivate
-
-
 /*!
  * Trick to have always at most one type id per type.
  *
@@ -83,6 +80,7 @@ TypeId qTypeIdImpl(TypeId newId)
     static TypeId id = newId;
     return id;
 }
+}  // namespace QtPrivate
 
 /*!
  * The function to get the type id, more or less equivalent of qMetaTypeId.
@@ -144,7 +142,7 @@ TypeId qTypeId()
     using ExtendedTypeIdData = N::QtPrivate::TypeIdDataExtended<sizeof...(Extensions) + 1>;
     static ExtendedTypeIdData typeData{{sizeof...(Extensions) + 1, {}},
                                        {{Extensions::typeId(), Extensions::template createExtension<T>()}...}};
-    auto id = qTypeIdImpl<T>(&typeData);
+    auto id = N::QtPrivate::qTypeIdImpl<T>(&typeData);
     if (id != &typeData) {
         // We are adding extensions
         // TODO try to re-use typeData, maybe we should just link them?
