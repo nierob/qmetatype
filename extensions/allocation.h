@@ -68,6 +68,8 @@ struct Allocation : public Ex<Allocation>
 {
     Q_STATIC_ASSERT(sizeof(void*) >= sizeof(size_t));
 
+    template<class T> constexpr static bool WorksForType() { return !std::is_same_v<T, void>; }
+
     static void RuntimeCall(quint8 operation, size_t argc, void **argv, void *data)
     {
         // TODO Mybe we should also have some init functions in the RuntimeData

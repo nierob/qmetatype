@@ -84,82 +84,50 @@ struct HasStreamOperator
 
 } // namespace QtPrivate
 
-template<class T, bool = QtPrivate::HasStreamOperator<T, QDataStream>::Value>
-class DataStreamImpl
-{
-public:
-    static inline void Call(quint8 operation, size_t argc, void **argv);
-};
-template<class T>
-class DataStreamImpl<T, false>
-{
-public:
-    static void Call(quint8 operation, size_t argc, void **argv)
-    {
-        Q_UNUSED(operation);
-        Q_UNUSED(argc);
-        Q_UNUSED(argv);
-    }
-};
-
 struct DataStream: public Ex<DataStream>
 {
     enum Operations {SaveData, LoadData};
+    template<class T> constexpr static bool WorksForType() { return QtPrivate::HasStreamOperator<T, QDataStream>::Value; }
     template<class T>
     static void Call(quint8 operation, size_t argc, void **argv, void *data = nullptr)
     {
-        Q_UNUSED(data);
-        DataStreamImpl<T>::Call(operation, argc, argv);
-    }
-};
-
-template<class T, bool hasStreamOperator>
-inline void DataStreamImpl<T, hasStreamOperator>::Call(quint8 operation, size_t argc, void **argv)
-{
-    switch (operation)
-    {
-        case DataStream::SaveData: {
-            Q_ASSERT(argc == 2);
-            auto stream = static_cast<QDataStream*>(argv[0]);
-            auto data = static_cast<const T*>(argv[1]);
-            *stream << *data;
-            break;
-        } case DataStream::LoadData: {
-            Q_ASSERT(argc == 2);
-            auto stream = static_cast<QDataStream*>(argv[0]);
-            auto data = static_cast<T*>(argv[1]);
-            *stream >> *data;
-            break;
+        Q_ASSERT(!data);
+        switch (operation)
+        {
+            case DataStream::SaveData: {
+                Q_ASSERT(argc == 2);
+                auto stream = static_cast<QDataStream*>(argv[0]);
+                auto data = static_cast<const T*>(argv[1]);
+                *stream << *data;
+                break;
+            } case DataStream::LoadData: {
+                Q_ASSERT(argc == 2);
+                auto stream = static_cast<QDataStream*>(argv[0]);
+                auto data = static_cast<T*>(argv[1]);
+                *stream >> *data;
+                break;
+            }
         }
-    }
-}
-
-template<class T, bool = QtPrivate::HasSaveStreamOperator<T, QDebug>::Value>
-class QDebugStreamImpl
-{
-public:
-    static inline void Call(quint8 operation, size_t argc, void **argv);
-};
-template<class T>
-class QDebugStreamImpl<T, false>
-{
-public:
-    static void Call(quint8 operation, size_t argc, void **argv)
-    {
-        Q_UNUSED(operation);
-        Q_UNUSED(argc);
-        Q_UNUSED(argv);
     }
 };
 
 struct QDebugStream: public Ex<QDebugStream>
 {
     enum Operations {SaveData};
+    template<class T> constexpr static bool WorksForType() { return QtPrivate::HasSaveStreamOperator<T, QDebug>::Value; }
     template<class T>
     static void Call(quint8 operation, size_t argc, void **argv, void *data = nullptr)
     {
         Q_ASSERT(!data);
-        return QDebugStreamImpl<T>::Call(operation, argc, argv);
+        switch (operation)
+        {
+            case QDebugStream::SaveData: {
+                Q_ASSERT(argc == 2);
+                auto stream = static_cast<QDebug*>(argv[0]);
+                auto data = static_cast<const T*>(argv[1]);
+                *stream << *data;
+            }
+        }
     }
 
     static void qDebugStream(TypeId id, QDebug &dbg, const void *data)
@@ -168,19 +136,5 @@ struct QDebugStream: public Ex<QDebugStream>
         Base::Call(id, SaveData, 2, argv);
     }
 };
-
-template<class T, bool hasStreamOperator>
-inline void QDebugStreamImpl<T, hasStreamOperator>::Call(quint8 operation, size_t argc, void **argv)
-{
-    switch (operation)
-    {
-        case QDebugStream::SaveData: {
-            Q_ASSERT(argc == 2);
-            auto stream = static_cast<QDebug*>(argv[0]);
-            auto data = static_cast<const T*>(argv[1]);
-            *stream << *data;
-        }
-    }
-}
 
 }  // N::Extensions

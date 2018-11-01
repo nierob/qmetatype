@@ -40,6 +40,7 @@
 #pragma once
 
 #include <limits>
+#include <tuple>
 
 #include "metatype_fwd.h"
 #include "extensions/allocation.h"
@@ -101,14 +102,44 @@ TypeId qTypeIdImpl(TypeId newId)
  * likely be more expensive then static access.
  * TODO think about lifetime of Extensions in context of plugins
  */
+
+namespace QtPrivate {
+template<class T, class First, class... Tail>
+struct FilterUsableDefaultExtensions {
+    using TailType = typename FilterUsableDefaultExtensions<T, Tail...>::Type;
+    using Type = std::conditional_t<First::template WorksForType<T>(),
+                                    decltype(std::tuple_cat(std::tuple<First>(), TailType())),
+                                    TailType>;
+};
+
+template<class T, class First>
+struct FilterUsableDefaultExtensions<T, First>
+{
+    using Type = std::conditional_t<First::template WorksForType<T>(),
+                                    std::tuple<First>,
+                                    std::tuple<>>;
+};
+
+template<class T, class ValidExtensionsTuple, size_t... I> TypeId qTypeIdDefault(std::index_sequence<I...>)
+{
+    return qTypeId<T, std::tuple_element_t<I, ValidExtensionsTuple>...>();
+}
+} // namespace QtPrivate
+
 template<class T, class... Extensions>
 TypeId qTypeId()
 {
     if constexpr (!bool(sizeof...(Extensions))) {
+        using namespace N::Extensions;
         // Register default stuff, Qt should define minimal useful set, DataStream is probably not in :-)
         // Every usage of metatype can call qTypeId with own minimal set of extensions.
-        return qTypeId<T, N::Extensions::Allocation, N::Extensions::DataStream, N::Extensions::Name_dlsym, N::Extensions::Name_hash>();
+
+        // List of extensions that WorksForType<T> returns true
+        using UsableExtensionsTuple = typename N::QtPrivate::FilterUsableDefaultExtensions<T, Allocation, DataStream, Name_dlsym, Name_hash>::Type;
+        auto extensionsCount = std::make_index_sequence<std::tuple_size_v<UsableExtensionsTuple>>();
+        return N::QtPrivate::qTypeIdDefault<T, UsableExtensionsTuple>(extensionsCount);
     }
+    static_assert((Extensions::template WorksForType<T>() && ...), "One of extensions is not valid for this type");
     (Extensions::template PreRegisterAction<T>(), ...);
     using ExtendedTypeIdData = N::QtPrivate::TypeIdDataExtended<sizeof...(Extensions) + 1>;
     static ExtendedTypeIdData typeData{{sizeof...(Extensions) + 1, {}},

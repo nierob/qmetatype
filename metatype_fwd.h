@@ -120,6 +120,8 @@ struct TypeIdDataExtended: public TypeIdData
     } initialExtensions[InitialExtensionsCount];
 };
 
+template<class T, class First, class... Tail>
+struct FilterUsableDefaultExtensions;
 }  // namespace QtPrivate
 
 template<class T, class... Extensions> TypeId qTypeId();

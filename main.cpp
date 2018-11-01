@@ -156,5 +156,15 @@ int main(int argc, char** argv)
         auto allocId = N::Extensions::Name_hash::fromName("N::Extensions::Allocation");
         qDebug() << "Same for allocation:" << allocId;
     }
+
+    // Check odd cases like "void" type, which we do want to have, but Allocation extension is not valid for it
+    qDebug() << "----------------Void--------------------------";
+    {
+        auto id = N::qTypeId<void>();
+        qDebug() << "Succesfull geting type id of void:" << id;
+        qDebug() << "    Size of void is undefined and we should refuse to automatically load Allocation extension ^" << N::Extensions::Allocation::sizeOf(id);
+        // This should not compile
+        // auto forceAddingAllocationExtension = N::qTypeId<void, N::Extensions::Allocation>();
+    }
     return 0;
 }
