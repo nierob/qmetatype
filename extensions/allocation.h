@@ -129,9 +129,8 @@ public:
     {
         std::size_t size;
         std::align_val_t align;
-        Allocation createExtensionBase(TypeId id)
+        Allocation createExtensionBase([[maybe_unused]] TypeId id)
         {
-            Q_UNUSED(id);
             return {{{RuntimeCall, this}}};
         }
     };

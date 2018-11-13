@@ -85,7 +85,7 @@ namespace Extensions
         // Can be overridden in Extension. Can be called multiple times per T, needs to be thread safe
         template<class T> constexpr static void PreRegisterAction() {}
         // Can be overridden in Extension. Can be called multiple times per T, needs to be thread safe
-        template<class T> constexpr static void PostRegisterAction(TypeId id) { Q_UNUSED(id); }
+        template<class T> constexpr static void PostRegisterAction([[maybe_unused]] TypeId id) {}
     };
 }
 
