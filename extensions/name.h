@@ -257,53 +257,36 @@ struct Name_hash: public Ex<Name_hash>
     static void registerName(TypeId id, const QString &name)
     {
         lock.lockForWrite();
-        nameToId[name] = id;
+        nameToId()[name] = id;
         lock.unlock();
     }
 
     static TypeId fromName(const QString &name)
     {
         lock.lockForRead();
-        auto id = nameToId[name];
+        auto id = nameToId()[name];
         lock.unlock();
         return id;
     }
 
     template<class T>
-    static void PreRegisterAction()
-    {
-        if (firstPreCall<T>())
-            lock.lockForWrite();
-    }
-
-    template<class T>
     static void PostRegisterAction(TypeId id)
     {
-        if (firstPostCall<T>()) {
-            nameToId[QtPrivate::typeNameFromType<T>()] = id;
+        [[maybe_unused]] static bool marker = [id]() {
+            lock.lockForWrite();
+            nameToId()[QtPrivate::typeNameFromType<T>()] = id;
             lock.unlock();
-        }
+            return true;
+        }();
     }
 
 private:
     static QReadWriteLock lock;
-    static QHash<QString, TypeId> nameToId;
 
-    template<class T>
-    static bool firstPreCall()
+    static QHash<QString, TypeId> &nameToId()
     {
-        bool result = false;
-        static bool marker = ((result = true), false);
-        Q_UNUSED(marker);
-        return result;
-    }
-    template<class T>
-    static bool firstPostCall()
-    {
-        bool result = false;
-        static bool marker = ((result = true), false);
-        Q_UNUSED(marker);
-        return result;
+        static QHash<QString, TypeId> mapping;
+        return mapping;
     }
 };
 

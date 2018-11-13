@@ -42,7 +42,6 @@
 #include "metatype_impl.h"
 
 QReadWriteLock N::Extensions::Name_hash::lock {QReadWriteLock::Recursive};
-QHash<QString, N::TypeId> N::Extensions::Name_hash::nameToId;
 
 QDebug operator<<(QDebug &dbg, const N::Extensions::ExtensionBase &ex)
 {
