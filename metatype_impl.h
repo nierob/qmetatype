@@ -161,4 +161,36 @@ inline void Extensions::Ex<Extension>::Call(TypeId id, quint8 operation, size_t 
     }
 }
 
+/*! Enum replacing QMetaType::Type
+ *
+ * We need to keep as much of source compatibility as possible therefore some hacks are needed.
+ * This struct shows a proposal how to implement replacement of QMetaType::Type enum. As we do not
+ * static ids anymore, we can not re-construct the enum. In ideal world such code:
+ *
+ * if (variant.userType == QMetaType::Void) ...
+ *
+ * could be replaced by:
+ *
+ * if (variant.userType == qTypeId<void>()) ...
+ *
+ * but we could simplify migration by temporally providing the proposed struct. The struct is has a cost
+ * and it can be affected by global static initialization order so it is not perfect, but it should
+ * be good enough as "Qt5 support mode".
+ *
+ * The const id takes also part of QDataStream format, so we would need some kind of mapping anyway, unless
+ * we drop old versions support there.
+ */
+
+struct QMetaType_Type
+{
+    #define CASE(CurrentEnumName, CurrentEnumValue, Type, ...) \
+        static const TypeId CurrentEnumName;
+    QT_FOR_EACH_STATIC_TYPE(CASE)
+    #undef CASE
+
+    TypeId from(int type);
+    TypeId from(QVariant::Type type) { return from(static_cast<int>(type)); }
+    TypeId from(QMetaType::Type type) { return from(static_cast<int>(type)); }
+};
+
 }  // namespace N

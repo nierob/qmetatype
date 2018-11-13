@@ -135,6 +135,7 @@ struct FilterUsableDefaultExtensions;
 }  // namespace QtPrivate
 
 template<class T, class... Extensions> TypeId qTypeId();
+struct QMetaType_Type;
 
 }  // namespace N
 

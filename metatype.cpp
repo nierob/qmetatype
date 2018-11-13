@@ -87,3 +87,31 @@ QDebug operator<<(QDebug &dbg, N::TypeId id)
     dbg << (void*)id << ")";
     return dbg.space();
 }
+
+N::TypeId N::QMetaType_Type::from(int type)
+{
+    switch(type)
+    {
+        #define CASE(CurrentEnumName, CurrentEnumValue, Type, ...) \
+            case CurrentEnumValue: return CurrentEnumName;
+        QT_FOR_EACH_STATIC_TYPE(CASE)
+        #undef CASE
+    }
+    return nullptr;
+}
+
+namespace {
+// Beacuse of the name lookup rules in QMetaType_Type we need to jump
+// Through type id -> type mapping
+template<int OldTypeId> struct TypeIdToType {};
+#define CASE(CurrentEnumName, CurrentEnumValue, RealType, ...) \
+    template<> struct TypeIdToType<CurrentEnumValue> { using Type = RealType; };
+QT_FOR_EACH_STATIC_TYPE(CASE)
+#undef CASE
+}
+
+#define CASE(CurrentEnumName, CurrentEnumValue, RealType, ...) \
+    const N::TypeId N::QMetaType_Type::CurrentEnumName = N::qTypeId<TypeIdToType<CurrentEnumValue>::Type>();
+QT_FOR_EACH_STATIC_TYPE(CASE)
+#undef CASE
+
