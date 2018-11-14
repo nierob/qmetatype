@@ -39,6 +39,7 @@
 
 #include <QtCore/qstring.h>
 #include "name.h"
+#include "convert.h"
 #include "metatype_impl.h"
 
 QReadWriteLock N::Extensions::Name_hash::lock {QReadWriteLock::Recursive};
@@ -74,4 +75,41 @@ void N::Extensions::ExtensionBase::warnAboutFailedCall(TypeId extensionId, TypeI
     auto extensionName = Name_dlsym::name(extensionId);
     qWarning() << QLatin1String("WARN Requested metatype extension ") + extensionName + QLatin1String(" is not registed for this type:")
                   << id;
+}
+
+void N::Extensions::Convertion::_convert(QReadWriteLock &lock, std::unordered_map<TypeId, TypeLessConverter> &converters, void *&result, const void *fromData, void *toData, TypeId toId)
+{
+    lock.lockForRead();
+    auto i = converters.find(toId);
+    if (i != converters.cend() && i->second(fromData, toData))
+        result = &result; // True
+    lock.unlock();
+}
+
+void N::Extensions::Convertion::_register(QReadWriteLock &lock, std::unordered_map<TypeId, TypeLessConverter> &converters, void *&result, TypeId toId, Convertion::TypeLessConverter converter)
+{
+    lock.lockForWrite();
+    bool r;
+    std::tie(std::ignore, r) = converters.try_emplace(toId, converter);
+    if (r)
+        result = &result; // True
+    lock.unlock();
+}
+
+void N::Extensions::Convertion::_unregister(QReadWriteLock &lock, std::unordered_map<TypeId, TypeLessConverter> &converters, TypeId toId)
+{
+    lock.lockForWrite();
+    auto i = converters.find(toId);
+    if (i != converters.cend())
+        converters.erase(i);
+    lock.unlock();
+}
+
+void N::Extensions::Convertion::_isRegisterd(QReadWriteLock &lock, std::unordered_map<TypeId, TypeLessConverter> &converters, void *&result, TypeId toId)
+{
+    lock.lockForRead();
+    auto i = converters.find(toId);
+    if (i != converters.cend())
+        result = &result; // True
+    lock.unlock();
 }

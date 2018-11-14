@@ -45,3 +45,4 @@
 #include "extensions/allocation.h"
 #include "extensions/streams.h"
 #include "extensions/name.h"
+#include "extensions/convert.h"

@@ -166,5 +166,38 @@ int main(int argc, char** argv)
         // This should not compile
         // auto forceAddingAllocationExtension = N::qTypeId<void, N::Extensions::Allocation>();
     }
+
+    qDebug() << "----------------Convertions--------------------------";
+    {
+        qDebug() << "Adding 'Convertion' type extensions to qint16 and QString";
+        auto i16id = N::qTypeId<qint16, N::Extensions::Convertion>();  // Converters should be probably in the default package
+        auto stringId = N::qTypeId<QString, N::Extensions::Convertion>();
+
+        qDebug() << "Succesful registration of implicit convertion from qint16 -> qint32:" << N::Extensions::Convertion::registerConverter<qint16, qint32>();
+        {
+            auto i32id = N::qTypeId<qint32>();
+            qint16 fromData = 43;
+            qint32 toData = -1;
+            qDebug() << "Implict convertion from qint16 (" << fromData
+                                                           << ") to qint32 worked:" << N::Extensions::Convertion::convert(&fromData, i16id, &toData, i32id)
+                                                           << "and the result is:" << toData;
+            Q_ASSERT(fromData == toData);
+        }
+        {
+            qDebug() << "Succesful registration of convertion from qstring to float:" << N::Extensions::Convertion::registerConverter<QString, float, &QString::toFloat>();
+            auto floatId = N::qTypeId<float>();
+            QString fromData = QLatin1String("43");
+            float toData = 0;
+            qDebug() << "Convertion from QString(" << fromData
+                                                   << ") to float worked:" << N::Extensions::Convertion::convert(&fromData, stringId, &toData, floatId)
+                                                   << "and the result is:" << toData;
+            fromData = QLatin1String("WillNotWork");
+            qDebug() << "Convertion from QString(" << fromData
+                                                   << ") to float worked:" << N::Extensions::Convertion::convert(&fromData, stringId, &toData, floatId)
+                                                   << "and it shouldn't";
+            qDebug() << "We can aslo check that QString has registered conversion to float:" << N::Extensions::Convertion::hasRegisteredConverterFunction<QString, float>();
+            qDebug() << "   while to int doesn't exist (false): " << N::Extensions::Convertion::hasRegisteredConverterFunction<QString, int>();
+        }
+    }
     return 0;
 }
