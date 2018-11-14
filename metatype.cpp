@@ -84,8 +84,16 @@ QDebug operator<<(QDebug &dbg, N::TypeId id)
     dbg.nospace() << "TypeId(";
     if (!typeName.isEmpty())
         dbg << typeName << ',' << ' ';
-    dbg << (void*)id << ")";
-    return dbg.space();
+    dbg << (void*)id << ", Extensions: {";
+    // Callect names of all known extensions
+    auto fakeTypedItData = static_cast<const N::QtPrivate::TypeIdDataExtended<1>*>(id); // Just to get the offset
+    auto firstInitialExtension = fakeTypedItData->initialExtensions;
+    for (auto extension = firstInitialExtension; extension != firstInitialExtension + id->extCount; ++extension)
+        if (extension->id)
+            dbg.nospace() << ' ' << N::Extensions::Name_hash::name(extension->id);
+    for (auto&& [id, _]: std::as_const(id->knownExtensions))
+        dbg.nospace() << ' ' << N::Extensions::Name_hash::name(id);
+    return dbg.space() << "})";
 }
 
 N::TypeId N::QMetaType_Type::from(int type)
