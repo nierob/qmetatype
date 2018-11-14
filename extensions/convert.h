@@ -40,7 +40,6 @@
 #pragma once
 #include "extensions.h"
 #include <unordered_map>
-#include <tuple>
 #include <QtCore/qreadwritelock.h>
 
 namespace N::Extensions

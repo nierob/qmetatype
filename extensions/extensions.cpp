@@ -41,6 +41,8 @@
 #include "name.h"
 #include "convert.h"
 #include "metatype_impl.h"
+#include <tuple>
+#include <unordered_map>
 
 QReadWriteLock N::Extensions::Name_hash::lock {QReadWriteLock::Recursive};
 
