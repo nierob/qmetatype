@@ -41,6 +41,7 @@
 #include <string_view>
 #include <dlfcn.h>
 #include "extensions.h"
+#include <QtCore/qreadwritelock.h>
 
 /*!
  * Name extension
@@ -256,32 +257,39 @@ struct Name_hash: public Ex<Name_hash>
 
     static void registerName(TypeId id, const QString &name)
     {
-        lock.lockForWrite();
+        lock().lockForWrite();
         nameToId()[name] = id;
-        lock.unlock();
+        lock().unlock();
     }
 
     static TypeId fromName(const QString &name)
     {
-        lock.lockForRead();
+        lock().lockForRead();
         auto id = nameToId()[name];
-        lock.unlock();
+        lock().unlock();
         return id;
+    }
+
+    template<class T>
+    static void PreRegisterAction()
+    {
+        [[maybe_unused]] static bool marker = (lock().lockForWrite(), true);
     }
 
     template<class T>
     static void PostRegisterAction(TypeId id)
     {
-        [[maybe_unused]] static bool marker = [id]() {
-            lock.lockForWrite();
-            nameToId()[QtPrivate::typeNameFromType<T>()] = id;
-            lock.unlock();
-            return true;
-        }();
+        [[maybe_unused]] static bool marker = (nameToId()[QtPrivate::typeNameFromType<T>()] = id,
+                                               lock().unlock(), // Locked in PreRegisterAction
+                                               true);
     }
 
 private:
-    static QReadWriteLock lock;
+    static QReadWriteLock &lock()
+    {
+        static QReadWriteLock l{QReadWriteLock::Recursive};
+        return l;
+    }
 
     static QHash<QString, TypeId> &nameToId()
     {

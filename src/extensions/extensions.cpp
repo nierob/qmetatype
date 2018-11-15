@@ -44,8 +44,6 @@
 #include <tuple>
 #include <unordered_map>
 
-QReadWriteLock N::Extensions::Name_hash::lock {QReadWriteLock::Recursive};
-
 QDebug operator<<(QDebug &dbg, const N::Extensions::ExtensionBase &ex)
 {
     dbg.nospace() << "N::Extensions::ExtensionBase(call=" << (void*)ex.call << ", data=" << ex.data << ")";
