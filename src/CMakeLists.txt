@@ -1,0 +1,5 @@
+add_library (Metatype SHARED metatype_fwd.h  metatype.h  metatype_impl.h metatype.cpp extensions/allocation.h  extensions/convert.h  extensions/extensions.h  extensions/name.h  extensions/streams.h extensions/extensions.cpp)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+find_package (Qt5Core CONFIG REQUIRED)
+target_link_libraries(Metatype Qt5::Core)
+target_compile_features(Metatype PUBLIC cxx_std_17)
